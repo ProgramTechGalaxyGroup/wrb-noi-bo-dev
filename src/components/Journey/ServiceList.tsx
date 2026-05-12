@@ -308,11 +308,7 @@ const CombinedRatingView = ({
         const rating = ratings[itemId];
         if (!rating || submitting) return;
 
-        // If excellent → show tip popup first
-        if (rating === 4) {
-            setShowTipFor(itemId);
-            return;
-        }
+
 
         setSubmitting(itemId);
         try {

@@ -30,12 +30,12 @@ export const TIMER_CONFIG_COMPACT = {
 // ─── Violations Checklist ────────────────────────────────────────────────────
 
 export const VIOLATIONS_VI = [
-    '1. Nhân viên sử dụng điện thoại riêng trong giờ làm?',
-    '2. Nhân viên gợi ý hoặc xin tiền thưởng (tip)?',
-    '3. Nhân viên nói chuyện riêng quá nhiều?',
-    '4. Nhân viên thực hiện sai quy trình?',
-    '5. Nhân viên không sắp xếp và bảo quản đồ của khách?',
-    '6. Nhân viên có thông báo bấm giờ khi bắt đầu dịch vụ không?',
+    '1. Kỹ thuật viên có sử dụng điện thoại cá nhân trong khi làm việc không?',
+    '2. Kỹ thuật viên có làm phiền quý khách trong quá trình phục vụ không?',
+    '3. Kỹ thuật viên có thực hiện sai quy trình dịch vụ không?',
+    '4. Kỹ thuật viên có quên không gom vật dụng của quý khách vào một chỗ không?',
+    '5. Kỹ thuật viên có gợi ý hoặc đòi tiền tip không?',
+    '6. Kỹ thuật viên có quên thông báo cho quý khách khi bắt đầu bấm giờ không?',
 ];
 
 export const VIOLATIONS_EN = [
