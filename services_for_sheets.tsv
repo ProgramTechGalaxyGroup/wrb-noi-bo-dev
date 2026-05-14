@@ -1,0 +1,52 @@
+﻿[dotenv@17.3.1] injecting env (13) from .env.local -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+Danh mß╗Ñc	T├¬n dß╗ïch vß╗Ñ (VN)	T├¬n dß╗ïch vß╗Ñ (EN)	Thß╗¥i l╞░ß╗úng nhß╗Å nhß║Ñt (ph├║t)	Gi├í tß║íi mß╗æc nhß╗Å nhß║Ñt (VN─É)	Tß║Ñt cß║ú mß╗æc thß╗¥i gian	L├á tiß╗çn ├¡ch
+Additional	Cß║ío r├óu (dao cß║ío)	Shave (razor)	N/A	210000	N/A	
+Additional	Ch├á g├│t ch├ón	Heel skin shave	30	315000	30	
+Additional	Gß╗Öi ─æß║ºu & sß║Ñy kh├┤	Hair wash & blow dry	45	420000	45	
+Additional	L├ám m├│ng tay & ch├ón	Manicure & Pedicure	30	315000	30	
+Additional	M├ít-xa ch├ón	Foot massage	45	370000	45	
+Additional	M├ít-xa ─æß║ºu cß╗ò vai & tay	Head neck shoulder & Arm massage	45	370000	45	
+Additional	M├ít-xa l╞░ng	Back massage	30	315000	30	
+Additional	Ph├▓ng ri├¬ng	Private room	N/A	105000	N/A	C├│
+Barber	Cß║ío/tß╗ëa r├óu	Beard shave/trim	N/A	210000	N/A	
+Barber	Cß║»t t├│c	Haircut	N/A	265000	N/A	
+Barber	G├│i cß║»t t├│c 1	Barber Package 1	N/A	370000	N/A	
+Barber	G├│i cß║»t t├│c 2	Barber Package 2	N/A	570000	N/A	
+Barber	G├│i cß║»t t├│c 3	Barber Package 3	N/A	915000	N/A	
+Barber	G├│i cß║»t t├│c 4	Barber Package 4	90	630000	90	
+Barber	G├│i cß║»t t├│c 5	Barber Package 5	120	840000	120	
+Body	ß║ñn huyß╗çt	Shiatsu	60	630000	60, 70, 90, 120, 180, 240, 300	
+Body	─É├í n├│ng	Hot stone	70	685000	70, 90, 120, 180, 240, 300	
+Body	Dß║ºu dß╗½a	Coconut oil	60	580000	60, 70, 90, 120, 180, 240, 300	
+Body	Hai kß╗╣ thuß║¡t vi├¬n	Four hand	60	895000	60, 90, 120, 180, 240, 300	
+Body	Kß║┐t hß╗úp 4 liß╗çu tr├¼nh	Mix of four therapies	70	685000	70, 90, 120, 180, 240, 300	
+Body	Th├íi	Thai	70	685000	70, 90, 120, 180, 240, 300	
+Body	Tinh dß║ºu	Aroma oil	60	525000	60, 70, 90, 120, 180, 240, 300	
+Ear Clean	120m | Lß║Ñy r├íy tai, ─æß║ºu vai cß╗ò, ch─âm s├│c to├án th├ón, mß║╖t & gß╗Öi	120m | Ear, Head Neck Shoulder, Full Body Care, Facial & Wash	120	1105000	120	
+Ear Clean	70m | Lß║Ñy r├íy tai, ─æß║ºu vai cß╗ò v├á ch─âm s├│c ch├ón	70m | Ear, Head Neck Shoulder & Foot Care	70	685000	70	
+Ear Clean	70m | Lß║Ñy r├íy tai, ─æß║ºu vai cß╗ò, ch─âm s├│c to├án th├ón	70m | Ear, Head Neck Shoulder, Full Body Care	70	705000	70	
+Ear Clean	90m | Lß║Ñy r├íy tai, ─æß║ºu vai cß╗ò v├á ch─âm s├│c ch├ón	90m | Ear, Head Neck Shoulder & Foot Care	90	790000	90	
+Ear Clean	90m | Lß║Ñy r├íy tai, ─æß║ºu vai cß╗ò, ch─âm s├│c to├án th├ón	90m | Ear, Head Neck Shoulder, Full Body Care	90	810000	90	
+Ear Clean	Lß║Ñy r├íy tai	Ear Clean	30	315000	30, 45, 60	
+Facial	Ch─âm s├│c da mß║╖t	Facial	45	420000	45, 45, 60	
+Facial	G├│i ch─âm s├│c da mß║╖t 1	Facial Package 1	90	810000	90	
+Facial	G├│i ch─âm s├│c da mß║╖t 2	Facial Package 2	90	840000	90	
+Facial	G├│i ch─âm s├│c da mß║╖t 3	Facial Package 3	120	1105000	120	
+Foot	ß║ñn huyß╗çt ch├ón chuy├¬n nghiß╗çp	Foot care	45	370000	45, 60, 70, 90, 120, 180, 240, 300	
+Hair Wash	Gß╗Öi ─æß║ºu	Hair wash	30	315000	30, 45, 60	
+Hair Wash	G├│i gß╗Öi ─æß║ºu 1	Hair Wash Package 1	70	685000	70	
+Hair Wash	G├│i gß╗Öi ─æß║ºu 2	Hair Wash Package 2	90	790000	90	
+Hair Wash	G├│i gß╗Öi ─æß║ºu 3	Hair Wash Package 3	70	705000	70	
+Hair Wash	G├│i gß╗Öi ─æß║ºu 4	Hair Wash Package 4	90	810000	90	
+Hair Wash	G├│i gß╗Öi ─æß║ºu 5	Hair Wash Package 5	120	1105000	120	
+Heel Skin Shave	Ch├á g├│t ch├ón	Heel skin shave	30	315000	30	
+Heel Skin Shave	G├│i ch├á g├│t ch├ón 1	Heel skin shave Package 1	70	630000	70	
+Heel Skin Shave	G├│i ch├á g├│t ch├ón 2	Heel skin shave Package 2	90	735000	90	
+Heel Skin Shave	G├│i ch├á g├│t ch├ón 3	Heel skin shave Package 3	70	685000	70	
+Heel Skin Shave	G├│i ch├á g├│t ch├ón 4	Heel skin shave Package 4	90	790000	90	
+Manicure & Pedicure	G├│i l├ám m├│ng tay + ch├ón 1	Manicure & Pedicure Package 1	70	665000	70	
+Manicure & Pedicure	G├│i l├ám m├│ng tay + ch├ón 2	Manicure & Pedicure Package 2	90	790000	90	
+Manicure & Pedicure	G├│i l├ám m├│ng tay + ch├ón 3	Manicure & Pedicure Package 3	70	685000	70	
+Manicure & Pedicure	G├│i l├ám m├│ng tay + ch├ón 4	Manicure & Pedicure Package 4	90	810000	90	
+Manicure & Pedicure	L├ám m├│ng tay & ch├ón	Manicure & Pedicure	30	315000	30	
+Premium	G├│i dß╗ïch vß╗Ñ cao cß║Ñp	Combo King	120	1575000	120	
