@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { mockStaff, mockSkills, VIP_PRICE_PER_60_MIN } from '../mockData';
+import { mockStaff, mockSkills } from '../mockData';
 
 // =============================================
 // ✅ Confirmation Screen – CELESTIAL Design
@@ -15,6 +15,7 @@ interface ConfirmationScreenProps {
   selectedSkillsMap: Record<string, string[]>;
   totalDuration: number;
   timeSlot: string | null;
+  totalPrice: number;
   onConfirm: () => void;
 }
 
@@ -24,13 +25,11 @@ const ConfirmationScreen = ({
   selectedSkillsMap,
   totalDuration,
   timeSlot,
+  totalPrice,
   onConfirm,
 }: ConfirmationScreenProps) => {
   const isVi = lang === 'vi';
   const staffList = mockStaff.filter(s => selectedStaffIds.includes(s.id));
-  
-  // Tổng giá = Giá cơ bản theo giờ * Số giờ * Số lượng KTV
-  const totalPrice = (totalDuration / 60) * VIP_PRICE_PER_60_MIN * staffList.length;
 
   const isBranch = timeSlot === 'BRANCH_DECIDE';
 

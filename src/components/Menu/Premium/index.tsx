@@ -1,18 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import IntentSelector from './IntentSelector';
-import CategorySelector from './CategorySelector';
 import StaffSelector from './StaffSelector';
 import BookingConfig from './BookingConfig';
 import ConfirmationScreen from './ConfirmationScreen';
 
 // =============================================
-// 👑 Premium Menu – CELESTIAL State Machine
-// Root component for the VIP Booking Flow
+// 👑 Premium Menu – VIP Booking Flow
+// Luồng mới: STAFF → BOOKING_CONFIG → CONFIRMATION
+// Skip Intent + Category (đi thẳng chọn nhân viên)
 // =============================================
+
+// 🔧 UI CONFIGURATION
+const PROGRESS_MAP: Record<string, string> = {
+  STAFF: '25%',
+  BOOKING_CONFIG: '60%',
+  CONFIRMATION: '100%',
+};
+
+interface VipPricing {
+  duration: number;
+  price: number;
+  label: string;
+}
 
 interface PremiumMenuProps {
   lang: string;
@@ -20,38 +32,48 @@ interface PremiumMenuProps {
   onCheckout: () => void;
 }
 
-type MenuStep = 'INTENT' | 'CATEGORY' | 'STAFF' | 'BOOKING_CONFIG' | 'CONFIRMATION';
+type MenuStep = 'STAFF' | 'BOOKING_CONFIG' | 'CONFIRMATION';
 
 const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
   const isVi = lang === 'vi';
-  const [step, setStep] = useState<MenuStep>('INTENT');
+  const [step, setStep] = useState<MenuStep>('STAFF');
+
+  // VIP pricing from SystemConfigs
+  const [vipPricing, setVipPricing] = useState<VipPricing[]>([]);
 
   // Flow state
-  const [intent, setIntent] = useState<'service_led' | 'staff_led' | null>(null);
-  const [preferredCategory, setPreferredCategory] = useState<string | undefined>();
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
   const [selectedSkillsMap, setSelectedSkillsMap] = useState<Record<string, string[]>>({});
   const [totalDuration, setTotalDuration] = useState<number>(0);
   const [timeSlot, setTimeSlot] = useState<string | null>(null);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+
+  // Fetch VIP pricing from SystemConfigs
+  useEffect(() => {
+    fetch('/api/config/menu-vip')
+      .then(res => res.json())
+      .then(data => {
+        if (data.pricing && Array.isArray(data.pricing)) {
+          setVipPricing(data.pricing);
+        }
+      })
+      .catch(err => console.error('[VIP] Failed to fetch pricing:', err));
+  }, []);
 
   const handleBack = () => {
     switch (step) {
-      case 'INTENT': onBack(); break;
-      case 'CATEGORY': setStep('INTENT'); break;
-      case 'STAFF': setStep(intent === 'service_led' ? 'CATEGORY' : 'INTENT'); break;
+      case 'STAFF': onBack(); break;
       case 'BOOKING_CONFIG': setStep('STAFF'); break;
       case 'CONFIRMATION': setStep('BOOKING_CONFIG'); break;
     }
   };
 
-  // Progress percentage for the top bar
-  const progressWidth = () => {
+  // Step title for header
+  const getStepTitle = () => {
     switch (step) {
-      case 'INTENT': return '10%';
-      case 'CATEGORY': return '30%';
-      case 'STAFF': return '50%';
-      case 'BOOKING_CONFIG': return '75%';
-      case 'CONFIRMATION': return '100%';
+      case 'STAFF': return isVi ? 'CHỌN CHUYÊN GIA' : 'SELECT EXPERT';
+      case 'BOOKING_CONFIG': return isVi ? 'TÙY CHỌN DỊCH VỤ' : 'CUSTOMIZE';
+      case 'CONFIRMATION': return isVi ? 'XÁC NHẬN' : 'CONFIRM';
     }
   };
 
@@ -62,7 +84,7 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
         <motion.div
           className="h-full bg-[#e6c487]"
           initial={{ width: '0%' }}
-          animate={{ width: progressWidth() }}
+          animate={{ width: PROGRESS_MAP[step] || '0%' }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
       </div>
@@ -80,10 +102,7 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
           </button>
 
           <h1 className="text-lg font-serif italic tracking-[0.2em] text-[#e6c487]">
-            {step === 'CONFIRMATION'
-              ? (isVi ? 'XÁC NHẬN DỊCH VỤ' : 'CONFIRM')
-              : 'PREMIUM'
-            }
+            {getStepTitle()}
           </h1>
 
           {/* Right spacer */}
@@ -94,43 +113,6 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <AnimatePresence mode="wait">
-          {step === 'INTENT' && (
-            <motion.div
-              key="intent"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-            >
-              <IntentSelector
-                lang={lang}
-                onSelectIntent={(selectedIntent) => {
-                  setIntent(selectedIntent);
-                  if (selectedIntent === 'service_led') setStep('CATEGORY');
-                  else setStep('STAFF');
-                }}
-              />
-            </motion.div>
-          )}
-
-          {step === 'CATEGORY' && (
-            <motion.div
-              key="category"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CategorySelector
-                lang={lang}
-                onSelectCategory={(catId) => {
-                  setPreferredCategory(catId);
-                  setStep('STAFF');
-                }}
-              />
-            </motion.div>
-          )}
-
           {step === 'STAFF' && (
             <motion.div
               key="staff"
@@ -141,7 +123,6 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
             >
               <StaffSelector
                 lang={lang}
-                preferredCategoryId={preferredCategory}
                 onConfirmSelection={(ids) => {
                   setSelectedStaffIds(ids);
                   setStep('BOOKING_CONFIG');
@@ -161,10 +142,12 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
               <BookingConfig
                 lang={lang}
                 selectedStaffIds={selectedStaffIds}
+                vipPricing={vipPricing}
                 onConfirm={(data) => {
                   setSelectedSkillsMap(data.skillsMap);
                   setTotalDuration(data.totalDuration);
                   setTimeSlot(data.timeSlot);
+                  setTotalPrice(data.totalPrice || 0);
                   setStep('CONFIRMATION');
                 }}
               />
@@ -185,8 +168,9 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
                 selectedSkillsMap={selectedSkillsMap}
                 totalDuration={totalDuration}
                 timeSlot={timeSlot}
+                totalPrice={totalPrice}
                 onConfirm={() => {
-                  // TODO: Push data to MenuContext/localStorage then redirect
+                  // TODO: Push data to backend then redirect
                   onCheckout();
                 }}
               />

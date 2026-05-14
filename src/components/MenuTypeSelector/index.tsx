@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./style.module.css";
 import { ArrowLeft, X } from "lucide-react";
@@ -57,6 +57,15 @@ const texts: Record<string, any> = {
 export default function MenuTypeSelector({ lang, onSelect, onBack }: Props) {
     const t = texts[lang] || texts['en'];
     const [comingSoon, setComingSoon] = useState<string | null>(null);
+    const [vipEnabled, setVipEnabled] = useState(false);
+
+    // Fetch VIP config from SystemConfigs
+    useEffect(() => {
+        fetch('/api/config/menu-vip')
+            .then(res => res.json())
+            .then(data => setVipEnabled(data.enabled === true))
+            .catch(() => setVipEnabled(false));
+    }, []);
 
     // Coming Soon text
     const csText: Record<string, { title: string; desc: string; close: string }> = {
@@ -162,7 +171,7 @@ export default function MenuTypeSelector({ lang, onSelect, onBack }: Props) {
 
                 {/* === BOOK 2: PREMIUM === */}
                 <div
-                    onClick={() => setComingSoon('vip')}
+                    onClick={() => vipEnabled ? onSelect('vip') : setComingSoon('vip')}
                     className={`group ${styles.bookWrapper} cursor-pointer active:scale-95 transition-transform duration-300 animate-in fade-in slide-in-from-right-8 delay-300 fill-mode-forwards relative`}
                 >
                     <div

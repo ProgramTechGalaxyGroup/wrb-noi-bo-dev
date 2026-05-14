@@ -6,7 +6,7 @@ import { useParams, useRouter, notFound } from 'next/navigation';
 // --- IMPORT 2 GIAO DIỆN LỚN ---
 // Tự động tìm file index.tsx trong thư mục tương ứng
 import StandardMenu from '@/components/Menu/Standard';
-//import PremiumMenu from '@/components/Menu/Premium';
+import PremiumMenu from '@/components/Menu/Premium';
 
 export default function MenuPage() {
     // 1. Lấy tham số từ URL
@@ -37,7 +37,10 @@ export default function MenuPage() {
         return <StandardMenu lang={lang} onBack={handleBack} onCheckout={handleCheckout} />;
     }
 
-
+    // Trường hợp 2: Menu VIP (Premium)
+    if (menuType === 'vip') {
+        return <PremiumMenu lang={lang} onBack={handleBack} onCheckout={handleCheckout} />;
+    }
 
     // Trường hợp 3: Người dùng nhập bậy bạ (vd: .../abc/menu) -> Trả về 404
     return notFound();

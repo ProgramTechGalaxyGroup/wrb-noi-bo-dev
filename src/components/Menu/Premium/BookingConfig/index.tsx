@@ -1,21 +1,33 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { mockStaff, mockSkills, mockTimeSlots, VIP_PRICE_PER_60_MIN } from '../mockData';
+import { mockStaff, mockSkills, mockTimeSlots } from '../mockData';
 
 // =============================================
 // 📅 Booking Config – CELESTIAL Design
 // Cấu hình KTV, Kỹ năng từng người, Thời gian động
 // =============================================
 
+interface VipPricing {
+  duration: number;
+  price: number;
+  label: string;
+}
+
 interface BookingConfigProps {
   lang: string;
   selectedStaffIds: string[];
-  onConfirm: (data: { skillsMap: Record<string, string[]>; totalDuration: number; timeSlot: string | null }) => void;
+  vipPricing?: VipPricing[];
+  onConfirm: (data: { skillsMap: Record<string, string[]>; totalDuration: number; timeSlot: string | null; totalPrice: number }) => void;
 }
 
-const ALL_DURATIONS = [60, 70, 80, 90, 100, 110, 120, 150, 180, 210, 240];
+// Fallback durations if API hasn't loaded yet
+const FALLBACK_VIP_PRICING: VipPricing[] = [
+  { duration: 60, price: 690000, label: '60 phút' },
+  { duration: 90, price: 1035000, label: '90 phút' },
+  { duration: 120, price: 1380000, label: '120 phút' },
+];
 
-const BookingConfig = ({ lang, selectedStaffIds, onConfirm }: BookingConfigProps) => {
+const BookingConfig = ({ lang, selectedStaffIds, vipPricing, onConfirm }: BookingConfigProps) => {
   const isVi = lang === 'vi';
   const staffList = mockStaff.filter(s => selectedStaffIds.includes(s.id));
   const primaryStaff = staffList[0];
@@ -57,46 +69,21 @@ const BookingConfig = ({ lang, selectedStaffIds, onConfirm }: BookingConfigProps
     });
   };
 
-  // Tính toán thời gian tối thiểu yêu cầu (minRequired) = MAX(tổng duration các skill của mỗi KTV)
-  const minRequiredDuration = useMemo(() => {
-    const durationsPerStaff = selectedStaffIds.map(staffId => {
-      const skills = selectedSkillsMap[staffId] || [];
-      return skills.reduce((sum, skId) => {
-        const sk = mockSkills.find(s => s.id === skId);
-        return sum + (sk?.duration || 0);
-      }, 0);
-    });
-    return Math.max(...durationsPerStaff, 0); // 0 nếu chưa chọn gì
-  }, [selectedSkillsMap, selectedStaffIds]);
+  // VIP pricing tiers (from SystemConfigs or fallback)
+  const pricingTiers = (vipPricing && vipPricing.length > 0) ? vipPricing : FALLBACK_VIP_PRICING;
 
-  // Options chọn thời gian (lớn hơn hoặc bằng minRequiredDuration)
-  const durationOptions = useMemo(() => {
-    if (minRequiredDuration === 0) return [];
-    let options = ALL_DURATIONS.filter(d => d >= minRequiredDuration);
-    // Nhét mốc min vào nếu mốc đó lẻ và ko thuộc list chuẩn (VD 75p)
-    if (!options.includes(minRequiredDuration)) {
-      options = [minRequiredDuration, ...options].sort((a,b) => a-b);
-    }
-    return options;
-  }, [minRequiredDuration]);
+  // Duration options are fixed VIP tiers
+  const durationOptions = pricingTiers.map(t => t.duration);
 
-  // Reset selectedDuration & bookingMethod nếu minRequired tăng vượt qua selectedDuration
-  useEffect(() => {
-    if (selectedDuration && selectedDuration < minRequiredDuration) {
-      setSelectedDuration(null);
-      setBookingMethod(null);
-      setSelectedSlot(null);
-    }
-  }, [minRequiredDuration, selectedDuration]);
+  // Get price for selected duration
+  const selectedTier = pricingTiers.find(t => t.duration === selectedDuration);
+  const totalPrice = selectedTier ? selectedTier.price * staffList.length : 0;
 
-  // Điều kiện để Confirm
-  const isAllStaffHasSkills = selectedStaffIds.every(id => selectedSkillsMap[id] && selectedSkillsMap[id].length > 0);
-  const isReady = isAllStaffHasSkills && 
-                  selectedDuration !== null && 
+  // No longer needed: duration options are fixed VIP tiers
+
+  const isReady = selectedDuration !== null && 
                   bookingMethod !== null && 
                   (bookingMethod === 'branch' || (bookingMethod === 'advance' && selectedSlot !== null && selectedSlot !== 'BRANCH_DECIDE'));
-                  
-  const totalPrice = selectedDuration ? (selectedDuration / 60) * VIP_PRICE_PER_60_MIN * staffList.length : 0;
 
   return (
     <motion.div
@@ -183,9 +170,8 @@ const BookingConfig = ({ lang, selectedStaffIds, onConfirm }: BookingConfigProps
         </div>
       </motion.section>
 
-      {/* CHỌN THỜI GIAN THEO SKILL PENDING */}
       <AnimatePresence>
-        {isAllStaffHasSkills && (
+        {durationOptions.length > 0 && (
           <motion.section
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -194,26 +180,34 @@ const BookingConfig = ({ lang, selectedStaffIds, onConfirm }: BookingConfigProps
           >
             <div className="p-5 rounded-2xl bg-[#c9a96e]/5 border border-[#e6c487]/20 relative">
               <h3 className="text-[11px] tracking-[0.2em] uppercase text-[#e6c487] font-bold mb-1">
-                {isVi ? 'TỔNG THỜI GIAN MONG MUỐN' : 'DESIRED DURATION'}
+                {isVi ? 'CHỌN THỜI LƯỢNG DỊCH VỤ' : 'SELECT DURATION'}
               </h3>
               <p className="text-[10px] text-[#998f81] mb-4">
-                {isVi ? `Tối thiểu cần ${minRequiredDuration}p cho các kỹ năng đã chọn.` : `Requires at least ${minRequiredDuration} mins.`}
+                {isVi ? 'Giá đã bao gồm VAT' : 'Price includes VAT'}
               </p>
               
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {durationOptions.map(dur => (
+              <div className="flex flex-col gap-3">
+                {pricingTiers.map(tier => (
                   <button
-                    key={dur}
-                    onClick={() => {
-                      setSelectedDuration(dur);
-                    }}
-                    className={`shrink-0 py-2.5 px-5 rounded-xl font-medium transition-all text-sm ${
-                      selectedDuration === dur
-                        ? 'bg-[#e6c487] text-[#412d00] font-bold shadow-[0_0_15px_rgba(230,196,135,0.4)]'
-                        : 'bg-[#1b1b1d] border border-[#4d463a]/40 text-[#d0c5b5]'
+                    key={tier.duration}
+                    onClick={() => setSelectedDuration(tier.duration)}
+                    className={`py-4 px-5 rounded-2xl font-medium transition-all flex justify-between items-center ${
+                      selectedDuration === tier.duration
+                        ? 'bg-[#e6c487]/15 border-2 border-[#e6c487] text-[#e6c487] shadow-[0_0_20px_rgba(230,196,135,0.15)]'
+                        : 'bg-[#1b1b1d] border-2 border-[#4d463a]/30 text-[#d0c5b5] hover:border-[#998f81]/50'
                     }`}
                   >
-                    {dur} {isVi ? 'phút' : 'mins'}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        selectedDuration === tier.duration ? 'border-[#e6c487]' : 'border-[#4d463a]'
+                      }`}>
+                        {selectedDuration === tier.duration && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#e6c487]" />
+                        )}
+                      </div>
+                      <span className="text-base font-bold">{tier.duration} {isVi ? 'phút' : 'mins'}</span>
+                    </div>
+                    <span className="text-base font-bold">{tier.price.toLocaleString('vi-VN')}đ</span>
                   </button>
                 ))}
               </div>
@@ -280,7 +274,7 @@ const BookingConfig = ({ lang, selectedStaffIds, onConfirm }: BookingConfigProps
                       {isVi ? 'CHỌN NGÀY' : 'SELECT DATE'}
                     </h3>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                      {dayChips.map((day, idx) => (
+                      {dayChips.map((day: { label: string; date: number }, idx: number) => (
                         <button
                           key={idx}
                           onClick={() => setSelectedDay(idx)}
@@ -416,7 +410,7 @@ const BookingConfig = ({ lang, selectedStaffIds, onConfirm }: BookingConfigProps
               </div>
             </div>
             <button
-              onClick={() => onConfirm({ skillsMap: selectedSkillsMap, totalDuration: selectedDuration, timeSlot: selectedSlot })}
+              onClick={() => onConfirm({ skillsMap: selectedSkillsMap, totalDuration: selectedDuration, timeSlot: selectedSlot, totalPrice })}
               className="w-full py-5 rounded-full bg-[#e6c487] text-[#412d00] font-bold tracking-[0.12em] text-sm shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex items-center justify-center gap-3 active:scale-95 duration-200 uppercase"
             >
               <span>{isVi ? 'XÁC NHẬN LỰA CHỌN' : 'CONFIRM SELECTION'}</span>
