@@ -26,6 +26,8 @@ const dictionaries = {
             change_title: "Change:",
             insufficient: "Insufficient",
             confirm_order_btn: "CONFIRM ORDER",
+            payment_method_title: "PAYMENT",
+            continue: "CONTINUE",
 
             // Modal Specific
             modal_title: "Confirming Order",
@@ -186,6 +188,8 @@ const dictionaries = {
             change_title: "Tiền thừa:",
             insufficient: "Thiếu",
             confirm_order_btn: "XÁC NHẬN ĐƠN",
+            payment_method_title: "THANH TOÁN",
+            continue: "TIẾP TỤC",
 
             // Modal Specific
             modal_title: "Xác nhận yêu cầu",
@@ -346,6 +350,8 @@ const dictionaries = {
             change_title: "거스름돈:",
             insufficient: "부족",
             confirm_order_btn: "주문 확인",
+            payment_method_title: "결제",
+            continue: "계속",
 
             // Modal Specific
             modal_title: "주문 확인",
@@ -506,6 +512,8 @@ const dictionaries = {
             change_title: "找零:",
             insufficient: "不足",
             confirm_order_btn: "确认订单",
+            payment_method_title: "支付",
+            continue: "继续",
 
             // Modal Specific
             modal_title: "确认订单",
@@ -666,6 +674,8 @@ const dictionaries = {
             change_title: "お釣り:",
             insufficient: "不足",
             confirm_order_btn: "注文を確定",
+            payment_method_title: "お支払い",
+            continue: "次へ",
 
             // Modal Specific
             modal_title: "注文の確認",

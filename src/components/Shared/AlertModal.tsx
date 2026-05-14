@@ -50,7 +50,15 @@ export default function AlertModal({ isOpen, title, message, type = 'error', onC
         );
     }
 
-    const defaultTitle = type === 'error' ? (lang === 'vi' ? 'Thông báo' : 'Alert') : (lang === 'vi' ? 'Thông tin' : 'Information');
+    const alertI18n: Record<string, { error: string; info: string; button: string }> = {
+        vi: { error: 'Thông báo', info: 'Thông tin', button: 'Đã hiểu' },
+        en: { error: 'Alert', info: 'Information', button: 'Got it' },
+        kr: { error: '알림', info: '안내', button: '확인' },
+        cn: { error: '提示', info: '信息', button: '知道了' },
+        jp: { error: 'お知らせ', info: '情報', button: '了解' },
+    };
+    const langTexts = alertI18n[lang] || alertI18n['en'];
+    const defaultTitle = type === 'error' ? langTexts.error : langTexts.info;
 
     return (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -64,7 +72,7 @@ export default function AlertModal({ isOpen, title, message, type = 'error', onC
                 </p>
                 <div className="flex w-full">
                     <button onClick={onClose} className={`w-full py-4 rounded-xl font-bold border-none shadow-lg transition-colors ${btnColors}`}>
-                        {lang === 'vi' ? 'Đã hiểu' : 'Got it'}
+                        {langTexts.button}
                     </button>
                 </div>
             </div>

@@ -64,8 +64,8 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
         sosConfirm: translations[lang]?.sosConfirm || translations['en'].sosConfirm,
         sosSending: translations[lang]?.sosSending || translations['en'].sosSending,
         sosSent: translations[lang]?.sosSent || translations['en'].sosSent,
-        allDoneTitle: lang === 'vi' ? 'Cảm ơn bạn đã đánh giá!' : 'Thank you for your feedback!',
-        allDoneSub: lang === 'vi' ? 'Mọi dịch vụ đã hoàn thành. Hẹn gặp lại bạn!' : 'All services completed. See you again!',
+        allDoneTitle: ({ vi: 'Cảm ơn bạn đã đánh giá!', en: 'Thank you for your feedback!', kr: '평가해 주셔서 감사합니다!', cn: '感谢您的评价！', jp: 'ご評価いただきありがとうございます！' } as Record<string, string>)[lang] || 'Thank you for your feedback!',
+        allDoneSub: ({ vi: 'Mọi dịch vụ đã hoàn thành. Hẹn gặp lại bạn!', en: 'All services completed. See you again!', kr: '모든 서비스가 완료되었습니다. 다음에 또 뵙겠습니다!', cn: '所有服务已完成。期待再次见到您！', jp: '全てのサービスが完了しました。またのお越しをお待ちしております！' } as Record<string, string>)[lang] || 'All services completed. See you again!',
     };
 
     // Progress steps — 4 bước lộ trình đầy đủ
@@ -399,14 +399,14 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">{lang === 'vi' ? 'Xác nhận' : 'Confirm Action'}</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{({ vi: 'Xác nhận', en: 'Confirm Action', kr: '확인', cn: '确认', jp: '確認' } as Record<string, string>)[lang] || 'Confirm Action'}</h3>
                         <p className="text-gray-400 text-[15px] mb-8 leading-relaxed bg-[#0d0d0d] p-4 rounded-2xl w-full border border-white/5">{confirmState.message}</p>
                         <div className="flex gap-3 w-full">
                             <button onClick={() => setConfirmState(null)} className="flex-1 py-3.5 rounded-xl font-bold bg-[#0d0d0d] text-gray-400 border border-white/5 hover:border-white/10 hover:text-white transition-colors">
-                                {lang === 'vi' ? 'Hủy' : 'Cancel'}
+                                {({ vi: 'Hủy', en: 'Cancel', kr: '취소', cn: '取消', jp: 'キャンセル' } as Record<string, string>)[lang] || 'Cancel'}
                             </button>
                             <button onClick={confirmState.onConfirm} className={`flex-1 py-3.5 rounded-xl font-bold text-black border-none shadow-lg transition-colors ${confirmState.isDestructive ? 'bg-[#FF3B30] hover:bg-red-700 shadow-[#FF3B30]/20' : 'bg-[#C9A96E] hover:bg-[#b09461] shadow-[#C9A96E]/20'}`}>
-                                {lang === 'vi' ? 'Đồng ý' : 'Yes'}
+                                {({ vi: 'Đồng ý', en: 'Yes', kr: '확인', cn: '确定', jp: 'はい' } as Record<string, string>)[lang] || 'Yes'}
                             </button>
                         </div>
                     </div>
@@ -424,11 +424,11 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             )}
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">{lang === 'vi' ? 'Thông báo' : 'Alert'}</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{({ vi: 'Thông báo', en: 'Alert', kr: '알림', cn: '提示', jp: 'お知らせ' } as Record<string, string>)[lang] || 'Alert'}</h3>
                         <p className="text-gray-400 text-[15px] mb-8 leading-relaxed bg-[#0d0d0d] p-4 rounded-2xl w-full border border-white/5">{alertState.message}</p>
                         <div className="flex w-full">
                             <button onClick={() => setAlertState(prev => ({ ...prev, isOpen: false }))} className={`w-full py-4 rounded-xl font-bold border-none shadow-lg transition-colors ${alertState.type === 'error' ? 'bg-[#FF3B30] text-white hover:bg-red-700 shadow-[#FF3B30]/20' : 'bg-[#C9A96E] text-black hover:bg-[#b09461] shadow-[#C9A96E]/20'}`}>
-                                {lang === 'vi' ? 'Đã hiểu' : 'Got it'}
+                                {({ vi: 'Đã hiểu', en: 'Got it', kr: '확인', cn: '知道了', jp: '了解' } as Record<string, string>)[lang] || 'Got it'}
                             </button>
                         </div>
                     </div>
