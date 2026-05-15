@@ -179,7 +179,7 @@ export const translations: Record<string, any> = {
         checkKeys: '🔑 Keys / Cards',
         // TipModal
         tipExcellent: 'Excellent!',
-        tipMessage: 'We're delighted you enjoyed your visit! If you\'d like to share an extra thank-you, feel free to leave a small tip for your therapist—it\'s entirely up to you and always appreciated.',
+        tipMessage: 'We\'re delighted you enjoyed your visit! If you\'d like to share an extra thank-you, feel free to leave a small tip for your therapist—it\'s entirely up to you and always appreciated.',
         continueBtn: 'Continue',
     },
 
