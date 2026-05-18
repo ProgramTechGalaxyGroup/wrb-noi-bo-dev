@@ -143,24 +143,16 @@ const PremiumMenu = ({ lang, onBack, onCheckout }: PremiumMenuProps) => {
           )}
 
           {step === 'CONFIRMATION' && (
-            <motion.div
-              key="confirmation"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.div key="confirmation" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
               <ConfirmationScreen
                 lang={lang}
                 selectedStaffIds={selectedStaffIds}
+                selectedStaffInfoList={selectedStaffInfoList}
                 selectedSkillsMap={selectedSkillsMap}
                 totalDuration={totalDuration}
                 timeSlot={timeSlot}
                 totalPrice={totalPrice}
-                onConfirm={() => {
-                  // Booking already submitted via API — go back to home
-                  onBack();
-                }}
+                onConfirm={() => { onBack(); }}
               />
             </motion.div>
           )}

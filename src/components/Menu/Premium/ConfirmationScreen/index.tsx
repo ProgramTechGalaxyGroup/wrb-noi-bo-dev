@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { mockStaff, mockSkills } from '../mockData';
+import { type VipStaffInfo } from '@/lib/vipStaffUtils';
 
 // =============================================
 // ✅ Confirmation Screen – VIP Booking
@@ -14,9 +14,11 @@ const INPUT_STYLE = 'w-full bg-[#1b1b1d] border border-[#4d463a]/40 rounded-2xl 
 interface ConfirmationScreenProps {
   lang: string;
   selectedStaffIds: string[];
+  selectedStaffInfoList: VipStaffInfo[];  // real data
   selectedSkillsMap: Record<string, string[]>;
   totalDuration: number;
   timeSlot: string | null;
+  appointmentDate?: string | null;         // YYYY-MM-DD
   totalPrice: number;
   onConfirm: () => void;
 }
@@ -178,15 +180,19 @@ const i18n: Record<string, Record<string, string>> = {
 const ConfirmationScreen = ({
   lang,
   selectedStaffIds,
+  selectedStaffInfoList,
   selectedSkillsMap,
   totalDuration,
   timeSlot,
+  appointmentDate,
   totalPrice,
   onConfirm,
 }: ConfirmationScreenProps) => {
   const t = i18n[lang] || i18n['en'];
-  const staffList = mockStaff.filter(s => selectedStaffIds.includes(s.id));
   const isBranch = timeSlot === 'BRANCH_DECIDE';
+
+  // All selected skill IDs (union across all staff)
+  const allSelectedSkills = [...new Set(Object.values(selectedSkillsMap).flat())];
 
   // Customer info form state
   const [customerName, setCustomerName] = useState('');
@@ -197,17 +203,13 @@ const ConfirmationScreen = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingCode, setBookingCode] = useState('');
+  // Server confidence after submit
+  const [serverConfidence, setServerConfidence] = useState<'CONFIRMED' | 'NEEDS_CONFIRM' | 'RISKY' | null>(null);
+  const [serverWarnings, setServerWarnings] = useState<string[]>([]);
 
   const handleSubmit = async () => {
-    // Validate
-    if (!customerName.trim()) {
-      setFormError(t.errorName);
-      return;
-    }
-    if (!customerPhone.trim()) {
-      setFormError(t.errorPhone);
-      return;
-    }
+    if (!customerName.trim()) { setFormError(t.errorName); return; }
+    if (!customerPhone.trim()) { setFormError(t.errorPhone); return; }
     setFormError('');
     setIsSubmitting(true);
 
@@ -221,8 +223,10 @@ const ConfirmationScreen = ({
           customerEmail: customerEmail.trim(),
           customerNote: customerNote.trim(),
           selectedStaffIds,
+          selectedSkills: allSelectedSkills,   // ← NEW: pass skills to server
           duration: totalDuration,
           timeSlot,
+          appointmentDate: appointmentDate || null,
           totalPrice,
           lang,
         }),
@@ -231,12 +235,14 @@ const ConfirmationScreen = ({
       const data = await res.json();
 
       if (!res.ok) {
-        setFormError(data.error || 'Failed to submit');
+        setFormError(data.message || data.error || 'Failed to submit');
         setIsSubmitting(false);
         return;
       }
 
       setBookingCode(data.billCode || data.bookingId);
+      setServerConfidence(data.confidence ?? 'NEEDS_CONFIRM');
+      setServerWarnings(data.warnings ?? []);
       setIsSuccess(true);
     } catch (err) {
       setFormError('Network error. Please try again.');
@@ -245,31 +251,63 @@ const ConfirmationScreen = ({
     }
   };
 
-  // Success screen
+  // ─── Success Screen ───────────────────────────────────────────────────────
   if (isSuccess) {
+    const isConfirmed = serverConfidence === 'CONFIRMED';
+    const isRisky = serverConfidence === 'RISKY';
+
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center justify-center min-h-[80vh] px-8 text-center"
       >
-        <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mb-6">
-          <svg className="w-10 h-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+        {/* Confidence Icon */}
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${
+          isConfirmed ? 'bg-emerald-500/20' : isRisky ? 'bg-red-500/20' : 'bg-amber-500/20'
+        }`}>
+          {isConfirmed ? (
+            <svg className="w-10 h-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          ) : isRisky ? (
+            <svg className="w-10 h-10 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+          ) : (
+            <svg className="w-10 h-10 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          )}
         </div>
-        <h2 className="text-2xl font-serif italic text-[#e6c487] mb-3">{t.successTitle}</h2>
+
+        <h2 className="text-2xl font-serif italic text-[#e6c487] mb-2">{t.successTitle}</h2>
+
+        {/* Confidence Badge */}
+        <div className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase mb-4 ${
+          isConfirmed
+            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+            : isRisky
+              ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+              : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+        }`}>
+          {isConfirmed ? '✅ Đặt lịch thành công' : isRisky ? '🔴 Cần xác nhận khẩn' : '⚠️ Tiệm sẽ liên hệ xác nhận'}
+        </div>
+
         {bookingCode && (
           <div className="bg-[#1b1b1d] border border-[#e6c487]/30 rounded-2xl px-6 py-3 mb-4">
             <span className="text-[10px] text-[#998f81] uppercase tracking-wider block">Booking Code</span>
             <span className="text-lg font-bold text-[#e6c487] tracking-[0.1em]">{bookingCode}</span>
           </div>
         )}
-        <p className="text-[#d0c5b5] text-sm mb-8 max-w-[300px]">{t.successMsg}</p>
-        <button
-          onClick={onConfirm}
-          className="px-10 py-4 rounded-full bg-[#e6c487] text-[#412d00] font-bold tracking-[0.1em] text-sm active:scale-95 duration-200 uppercase"
-        >
+
+        <p className="text-[#d0c5b5] text-sm mb-4 max-w-[300px]">{t.successMsg}</p>
+
+        {/* Warnings */}
+        {serverWarnings.length > 0 && (
+          <div className="w-full max-w-[340px] bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-6 text-left">
+            {serverWarnings.map((w, i) => (
+              <p key={i} className="text-xs text-amber-300/80 leading-relaxed">{w}</p>
+            ))}
+          </div>
+        )}
+
+        <button onClick={onConfirm}
+          className="px-10 py-4 rounded-full bg-[#e6c487] text-[#412d00] font-bold tracking-[0.1em] text-sm active:scale-95 duration-200 uppercase">
           {t.successBtn}
         </button>
       </motion.div>
@@ -304,13 +342,15 @@ const ConfirmationScreen = ({
         <div className="flex items-center gap-4 bg-[#1b1b1d] p-4 rounded-2xl border border-[#4d463a]/20">
           <div className="flex items-center gap-3 flex-1">
             <div className="flex -space-x-2">
-              {staffList.map(s => (
-                <img key={s.id} src={s.avatar} alt={s.name} className="w-10 h-10 rounded-full border-2 border-[#131315] object-cover" />
+              {selectedStaffInfoList.map(s => (
+                s.avatarUrl
+                  ? <img key={s.id} src={s.avatarUrl} alt={s.fullName} className="w-10 h-10 rounded-full border-2 border-[#131315] object-cover" />
+                  : <div key={s.id} className="w-10 h-10 rounded-full border-2 border-[#131315] bg-[#2a2a2c] flex items-center justify-center text-[#e6c487] font-bold text-sm">{s.fullName.charAt(0)}</div>
               ))}
             </div>
             <div>
               <div className="text-[10px] text-[#998f81] tracking-wider uppercase">{t.therapists}</div>
-              <div className="text-sm font-medium text-[#e4e2e4]">{staffList.map(s => s.name).join(' & ')}</div>
+              <div className="text-sm font-medium text-[#e4e2e4]">{selectedStaffInfoList.map(s => s.fullName).join(' & ')}</div>
             </div>
           </div>
         </div>
