@@ -311,7 +311,8 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
     }
 
     return (
-        <div className="min-h-screen bg-[#0d0d0d] text-white pb-10 font-sans selection:bg-[#C9A96E]/20">
+        <div className="fixed inset-0 overflow-y-auto overscroll-none bg-[#0d0d0d] text-white font-sans selection:bg-[#C9A96E]/20" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="min-h-full pb-10">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-[#1c1c1e]/90 backdrop-blur-md border-b border-white/5 px-4 py-4 flex flex-col shadow-sm">
                 <div className="flex items-center w-full mb-4">
@@ -462,6 +463,7 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
                     </div>
                 </div>
             )}
+          </div>
         </div>
     );
 }
