@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 
 // 🔧 EGRESS OPTIMIZATION: Cache Services in module scope (fetch once per session)
@@ -68,10 +68,9 @@ export function useJourneyRealtime(bookingId: string) {
 
         const supabase = createClient();
         try {
-            // 🔧 EGRESS FIX: Select only needed columns instead of select('*')
             const { data: booking, error: fetchError } = await supabase
                 .from('Bookings')
-                .select('id, status, timeStart, timeEnd, rating, violations, tipAmount, roomName, bedId, technicianCode, accessToken')
+                .select('*')
                 .eq('accessToken', bookingId)
                 .maybeSingle();
 
@@ -94,7 +93,7 @@ export function useJourneyRealtime(bookingId: string) {
                 // 🔧 EGRESS FIX: Select only needed columns instead of select('*')
                 const { data: items } = await supabase
                     .from('BookingItems')
-                    .select('id, serviceId, bookingId, duration, status, timeStart, technicianCodes, segments, itemRating, itemFeedback, ktvRatings, roomName, bedId, quantity, price, options')
+                    .select('*')
                     .eq('bookingId', realId); // Dùng booking.id thật, KHÔNG dùng URL param
 
                 // ⚠️ NO Staff query — khách hàng KHÔNG biết tên nhân viên

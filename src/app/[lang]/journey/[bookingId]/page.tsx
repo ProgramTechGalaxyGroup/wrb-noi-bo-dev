@@ -25,6 +25,66 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
     const [alertState, setAlertState] = React.useState<{ isOpen: boolean; message: string; type?: 'error' | 'success' | 'info' }>({ isOpen: false, message: '' });
     const [forceAllRated, setForceAllRated] = React.useState(false);
 
+    // 🔄 Pull-to-refresh state (MUST be before conditional returns — React Rules of Hooks)
+    const [pullDistance, setPullDistance] = React.useState(0);
+    const [isRefreshing, setIsRefreshing] = React.useState(false);
+    const touchStartY = React.useRef(0);
+    const isPulling = React.useRef(false);
+
+    // 🔧 PULL-TO-REFRESH CONFIGURATION
+    const PULL_THRESHOLD = 80;
+    const MAX_PULL = 120;
+
+    React.useEffect(() => {
+        const handleTouchStart = (e: TouchEvent) => {
+            if (window.scrollY === 0 && !isRefreshing) {
+                touchStartY.current = e.touches[0].clientY;
+                isPulling.current = true;
+            }
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (!isPulling.current || isRefreshing) return;
+            const deltaY = e.touches[0].clientY - touchStartY.current;
+            if (deltaY > 0) {
+                e.preventDefault();
+                setPullDistance(Math.min(deltaY * 0.5, MAX_PULL));
+            } else {
+                isPulling.current = false;
+                setPullDistance(0);
+            }
+        };
+
+        const handleTouchEnd = async () => {
+            if (!isPulling.current) return;
+            isPulling.current = false;
+            if (pullDistance >= PULL_THRESHOLD) {
+                setIsRefreshing(true);
+                setPullDistance(PULL_THRESHOLD);
+                try {
+                    await refresh();
+                } catch (err) {
+                    console.error('Pull-to-refresh error:', err);
+                } finally {
+                    setIsRefreshing(false);
+                    setPullDistance(0);
+                }
+            } else {
+                setPullDistance(0);
+            }
+        };
+
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [isRefreshing, pullDistance, refresh]);
+
     // State machine: derive từ booking.status + items status
     const rawStatus = journeyData?.status || 'PREPARING';
     // Log debug
@@ -294,66 +354,6 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
             </div>
         );
     }
-
-    // 🔄 Pull-to-refresh state
-    const [pullDistance, setPullDistance] = React.useState(0);
-    const [isRefreshing, setIsRefreshing] = React.useState(false);
-    const touchStartY = React.useRef(0);
-    const isPulling = React.useRef(false);
-
-    // 🔧 PULL-TO-REFRESH CONFIGURATION
-    const PULL_THRESHOLD = 80;
-    const MAX_PULL = 120;
-
-    React.useEffect(() => {
-        const handleTouchStart = (e: TouchEvent) => {
-            if (window.scrollY === 0 && !isRefreshing) {
-                touchStartY.current = e.touches[0].clientY;
-                isPulling.current = true;
-            }
-        };
-
-        const handleTouchMove = (e: TouchEvent) => {
-            if (!isPulling.current || isRefreshing) return;
-            const deltaY = e.touches[0].clientY - touchStartY.current;
-            if (deltaY > 0) {
-                e.preventDefault();
-                setPullDistance(Math.min(deltaY * 0.5, MAX_PULL));
-            } else {
-                isPulling.current = false;
-                setPullDistance(0);
-            }
-        };
-
-        const handleTouchEnd = async () => {
-            if (!isPulling.current) return;
-            isPulling.current = false;
-            if (pullDistance >= PULL_THRESHOLD) {
-                setIsRefreshing(true);
-                setPullDistance(PULL_THRESHOLD);
-                try {
-                    await refresh();
-                } catch (err) {
-                    console.error('Pull-to-refresh error:', err);
-                } finally {
-                    setIsRefreshing(false);
-                    setPullDistance(0);
-                }
-            } else {
-                setPullDistance(0);
-            }
-        };
-
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
-        document.addEventListener('touchmove', handleTouchMove, { passive: false });
-        document.addEventListener('touchend', handleTouchEnd);
-
-        return () => {
-            document.removeEventListener('touchstart', handleTouchStart);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
-        };
-    }, [isRefreshing, pullDistance, refresh]);
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white pb-10 font-sans selection:bg-[#C9A96E]/20">
