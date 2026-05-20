@@ -25,85 +25,19 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
     const [alertState, setAlertState] = React.useState<{ isOpen: boolean; message: string; type?: 'error' | 'success' | 'info' }>({ isOpen: false, message: '' });
     const [forceAllRated, setForceAllRated] = React.useState(false);
 
-    // 🔄 Pull-to-refresh state (MUST be before conditional returns — React Rules of Hooks)
-    const [pullDistance, setPullDistance] = React.useState(0);
+    // 🔄 Refresh state (MUST be before conditional returns — React Rules of Hooks)
     const [isRefreshing, setIsRefreshing] = React.useState(false);
-    const touchStartY = React.useRef(0);
-    const isPulling = React.useRef(false);
-    const pullDistanceRef = React.useRef(0);
 
-    // 🔧 PULL-TO-REFRESH CONFIGURATION
-    const PULL_THRESHOLD = 80;
-    const MAX_PULL = 120;
-    const ACTIVATION_ZONE = 15; // px dead zone before activating (allows native scroll)
-
-    React.useEffect(() => {
-        const handleTouchStart = (e: TouchEvent) => {
-            if (window.scrollY <= 0 && !isRefreshing) {
-                touchStartY.current = e.touches[0].clientY;
-                isPulling.current = true;
-            }
-        };
-
-        const handleTouchMove = (e: TouchEvent) => {
-            if (!isPulling.current || isRefreshing) return;
-
-            // If page has scrolled away from top, cancel pull
-            if (window.scrollY > 0) {
-                isPulling.current = false;
-                setPullDistance(0);
-                pullDistanceRef.current = 0;
-                return;
-            }
-
-            const deltaY = e.touches[0].clientY - touchStartY.current;
-
-            if (deltaY > ACTIVATION_ZONE) {
-                // User clearly pulling down — activate pull-to-refresh
-                e.preventDefault();
-                const dist = Math.min((deltaY - ACTIVATION_ZONE) * 0.5, MAX_PULL);
-                setPullDistance(dist);
-                pullDistanceRef.current = dist;
-            } else if (deltaY < 0) {
-                // User scrolling up — cancel pull, let native scroll work
-                isPulling.current = false;
-                setPullDistance(0);
-                pullDistanceRef.current = 0;
-            }
-            // 0 <= deltaY <= ACTIVATION_ZONE: do nothing, let browser decide
-        };
-
-        const handleTouchEnd = async () => {
-            if (!isPulling.current) return;
-            isPulling.current = false;
-
-            if (pullDistanceRef.current >= PULL_THRESHOLD) {
-                setIsRefreshing(true);
-                setPullDistance(PULL_THRESHOLD);
-                try {
-                    await refresh();
-                } catch (err) {
-                    console.error('Pull-to-refresh error:', err);
-                } finally {
-                    setIsRefreshing(false);
-                    setPullDistance(0);
-                    pullDistanceRef.current = 0;
-                }
-            } else {
-                setPullDistance(0);
-                pullDistanceRef.current = 0;
-            }
-        };
-
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
-        document.addEventListener('touchmove', handleTouchMove, { passive: false });
-        document.addEventListener('touchend', handleTouchEnd);
-
-        return () => {
-            document.removeEventListener('touchstart', handleTouchStart);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
-        };
+    const handleManualRefresh = React.useCallback(async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        try {
+            await refresh();
+        } catch (err) {
+            console.error('Refresh error:', err);
+        } finally {
+            setIsRefreshing(false);
+        }
     }, [isRefreshing, refresh]);
 
     // State machine: derive từ booking.status + items status
@@ -378,37 +312,26 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white pb-10 font-sans selection:bg-[#C9A96E]/20">
-            {/* Pull-to-refresh indicator */}
-            {(pullDistance > 0 || isRefreshing) && (
-                <div
-                    className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center transition-all duration-200"
-                    style={{ height: `${pullDistance}px` }}
-                >
-                    <div className={`flex flex-col items-center gap-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
-                        <svg
-                            className={`w-6 h-6 text-[#C9A96E] transition-transform duration-200 ${isRefreshing ? 'animate-spin' : ''}`}
-                            style={{ transform: isRefreshing ? undefined : `rotate(${(pullDistance / PULL_THRESHOLD) * 360}deg)` }}
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        {pullDistance >= PULL_THRESHOLD && !isRefreshing && (
-                            <span className="text-[10px] text-[#C9A96E] font-bold uppercase tracking-wider">
-                                {({ vi: 'Thả để tải lại', en: 'Release to refresh', kr: '새로고침', cn: '释放刷新', jp: 'リリースして更新' } as Record<string, string>)[lang] || 'Release to refresh'}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            )}
             {/* Header */}
             <header className="sticky top-0 z-40 bg-[#1c1c1e]/90 backdrop-blur-md border-b border-white/5 px-4 py-4 flex flex-col shadow-sm">
                 <div className="flex items-center w-full mb-4">
                     <button className="p-2 -ml-2 text-gray-400 hover:text-white transition-colors">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
-                    <h1 className="flex-1 text-center font-bold text-[#C9A96E] text-lg uppercase tracking-widest mr-6">
+                    <h1 className="flex-1 text-center font-bold text-[#C9A96E] text-lg uppercase tracking-widest">
                         {t.title}
                     </h1>
+                    {/* 🔄 Refresh button — reliable alternative to pull-to-refresh */}
+                    <button 
+                        onClick={handleManualRefresh}
+                        disabled={isRefreshing}
+                        className="p-2 -mr-2 text-gray-400 hover:text-[#C9A96E] active:scale-90 transition-all disabled:opacity-50"
+                        style={{ minWidth: 44, minHeight: 44 }}
+                    >
+                        <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </button>
                 </div>
 
                 {/* Progress Stepper — 4 bước */}
