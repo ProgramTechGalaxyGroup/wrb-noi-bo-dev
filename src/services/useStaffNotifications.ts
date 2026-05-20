@@ -40,7 +40,8 @@ export const useStaffNotifications = () => {
     const fetchInitial = async () => {
       const { data } = await supabase
         .from('StaffNotifications')
-        .select('*')
+        // 🔧 EGRESS FIX: Select only needed columns instead of select('*')
+        .select('id, bookingId, type, message, isRead, createdAt')
         .eq('isRead', false)
         .order('createdAt', { ascending: false })
         .limit(20);

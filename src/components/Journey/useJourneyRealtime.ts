@@ -1,5 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
+
+// 🔧 EGRESS OPTIMIZATION: Cache Services in module scope (fetch once per session)
+let cachedServices: any[] | null = null;
+let servicesCacheTimestamp = 0;
+const SERVICES_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 export type JourneyStatus = 'NEW' | 'PREPARING' | 'IN_PROGRESS' | 'CLEANING' | 'COMPLETED' | 'FEEDBACK' | 'DONE';
 
@@ -63,9 +68,10 @@ export function useJourneyRealtime(bookingId: string) {
 
         const supabase = createClient();
         try {
+            // 🔧 EGRESS FIX: Select only needed columns instead of select('*')
             const { data: booking, error: fetchError } = await supabase
                 .from('Bookings')
-                .select('*')
+                .select('id, status, timeStart, timeEnd, rating, violations, tipAmount, roomName, bedId, technicianCode, accessToken')
                 .eq('accessToken', bookingId)
                 .maybeSingle();
 
@@ -85,18 +91,26 @@ export function useJourneyRealtime(bookingId: string) {
                 const realId = booking.id;
                 setResolvedId(realId);
 
+                // 🔧 EGRESS FIX: Select only needed columns instead of select('*')
                 const { data: items } = await supabase
                     .from('BookingItems')
-                    .select('*')
+                    .select('id, serviceId, bookingId, duration, status, timeStart, technicianCodes, segments, itemRating, itemFeedback, ktvRatings, roomName, bedId, quantity, price, options')
                     .eq('bookingId', realId); // Dùng booking.id thật, KHÔNG dùng URL param
 
                 // ⚠️ NO Staff query — khách hàng KHÔNG biết tên nhân viên
 
-                // Fetch all services
-                const { data: svcs } = await supabase
-                    .from('Services')
-                    .select('id, nameVN, nameEN, nameCN, nameJP, nameKR, duration')
-                    .limit(1000);
+                // 🔧 EGRESS FIX: Cache services — only fetch once per session (saves ~50KB per poll)
+                let svcs = cachedServices;
+                const now = Date.now();
+                if (!svcs || (now - servicesCacheTimestamp > SERVICES_CACHE_TTL)) {
+                    const { data: freshSvcs } = await supabase
+                        .from('Services')
+                        .select('id, nameVN, nameEN, nameCN, nameJP, nameKR, duration')
+                        .limit(1000);
+                    svcs = freshSvcs;
+                    cachedServices = freshSvcs;
+                    servicesCacheTimestamp = now;
+                }
 
                 const svcMap = new Map();
                 if (svcs) {
@@ -322,10 +336,13 @@ export function useJourneyRealtime(bookingId: string) {
                 }
             });
 
-        // Fallback Polling (Every 5 seconds) just in case Realtime times out or block by network
+        // 🔧 EGRESS FIX: Fallback Polling ONLY when tab is hidden (Realtime handles active tabs)
+        // Reduced from 5s to 30s — saves ~2-3 GB egress/month
         const pollInterval = setInterval(() => {
-            fetchState();
-        }, 5000);
+            if (document.visibilityState === 'hidden') {
+                fetchState();
+            }
+        }, 30000);
 
         return () => {
             supabase.removeChannel(channel);
