@@ -14,6 +14,43 @@ type BookingConfidence = 'CONFIRMED' | 'NEEDS_CONFIRM' | 'RISKY';
 const getTodayVN = (): string =>
   new Date().toLocaleDateString('sv', { timeZone: 'Asia/Ho_Chi_Minh' });
 
+/** Get localized warning messages */
+function getWarningMessage(type: 'LEAVE_APPROVED' | 'LEAVE_PENDING' | 'BUSY' | 'NOT_CHECKED_IN', staffId: string, lang: string, extra?: string) {
+  const msgs: Record<string, Record<string, string>> = {
+    vi: {
+      LEAVE_APPROVED: `KTV ${staffId} đã được duyệt nghỉ ngày ${extra}`,
+      LEAVE_PENDING: `KTV ${staffId} đang chờ duyệt nghỉ ngày ${extra}`,
+      BUSY: `KTV ${staffId} đang phục vụ khách${extra ? `, dự kiến rảnh lúc ${extra}` : ''}`,
+      NOT_CHECKED_IN: `KTV ${staffId} chưa điểm danh hôm nay`
+    },
+    en: {
+      LEAVE_APPROVED: `Therapist ${staffId} is on approved leave on ${extra}`,
+      LEAVE_PENDING: `Therapist ${staffId} is pending leave approval on ${extra}`,
+      BUSY: `Therapist ${staffId} is currently busy${extra ? `, expected free at ${extra}` : ''}`,
+      NOT_CHECKED_IN: `Therapist ${staffId} has not checked in today`
+    },
+    kr: {
+      LEAVE_APPROVED: `테라피스트 ${staffId} 님의 ${extra} 휴가가 승인되었습니다`,
+      LEAVE_PENDING: `테라피스트 ${staffId} 님의 ${extra} 휴가 승인을 대기 중입니다`,
+      BUSY: `테라피스트 ${staffId} 님은 현재 서비스 중입니다${extra ? ` (종료 예정: ${extra})` : ''}`,
+      NOT_CHECKED_IN: `테라피스트 ${staffId} 님은 오늘 출근하지 않았습니다`
+    },
+    cn: {
+      LEAVE_APPROVED: `技师 ${staffId} 已获批在 ${extra} 休假`,
+      LEAVE_PENDING: `技师 ${staffId} 在 ${extra} 的休假申请待审批`,
+      BUSY: `技师 ${staffId} 正在服务中${extra ? `，预计 ${extra} 结束` : ''}`,
+      NOT_CHECKED_IN: `技师 ${staffId} 今日未打卡`
+    },
+    jp: {
+      LEAVE_APPROVED: `セラピスト ${staffId} は ${extra} に休暇が承認されています`,
+      LEAVE_PENDING: `セラピスト ${staffId} は ${extra} の休暇承認待ちです`,
+      BUSY: `セラピスト ${staffId} は現在施術中です${extra ? `（終了予定: ${extra}）` : ''}`,
+      NOT_CHECKED_IN: `セラピスト ${staffId} は本日出勤していません`
+    }
+  };
+  return msgs[lang]?.[type] || msgs['en'][type];
+}
+
 /**
  * POST /api/booking/vip-appointment
  *
@@ -109,9 +146,12 @@ export async function POST(request: NextRequest) {
         const leaveRecord = leaveList?.find((l: any) => l.employeeId === staffId);
         const isApproved = leaveRecord?.status === 'APPROVED';
         warnings.push(
-          isApproved
-            ? `KTV ${staffId} đã được duyệt nghỉ ngày ${targetDate}`
-            : `KTV ${staffId} đang chờ duyệt nghỉ ngày ${targetDate}`
+          getWarningMessage(
+            isApproved ? 'LEAVE_APPROVED' : 'LEAVE_PENDING',
+            staffId,
+            lang || 'vi',
+            targetDate
+          )
         );
         confidence = 'RISKY'; // Escalate to RISKY
       }
@@ -130,10 +170,9 @@ export async function POST(request: NextRequest) {
 
       for (const tq of tqList ?? []) {
         if (tq.status === 'working' || tq.status === 'assigned') {
-          const endTimeStr = tq.estimated_end_time
-            ? `, dự kiến rảnh lúc ${tq.estimated_end_time}`
-            : '';
-          warnings.push(`KTV ${tq.employee_id} đang phục vụ khách${endTimeStr}`);
+          warnings.push(
+            getWarningMessage('BUSY', tq.employee_id, lang || 'vi', tq.estimated_end_time)
+          );
           if (confidence === 'CONFIRMED') confidence = 'NEEDS_CONFIRM';
         }
       }
@@ -142,7 +181,7 @@ export async function POST(request: NextRequest) {
       const checkedInIds = new Set((tqList ?? []).map((t: any) => t.employee_id));
       for (const staffId of selectedStaffIds) {
         if (!checkedInIds.has(staffId) && !onLeaveIds.has(staffId)) {
-          warnings.push(`KTV ${staffId} chưa điểm danh hôm nay`);
+          warnings.push(getWarningMessage('NOT_CHECKED_IN', staffId, lang || 'vi'));
           if (confidence === 'CONFIRMED') confidence = 'NEEDS_CONFIRM';
         }
       }

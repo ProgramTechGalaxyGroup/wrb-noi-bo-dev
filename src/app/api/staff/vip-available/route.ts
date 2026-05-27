@@ -33,6 +33,7 @@ export async function GET(_req: NextRequest) {
       .from('Staff')
       .select('id, full_name, avatar_url, gender, skills, height')
       .eq('status', 'ĐANG LÀM')
+      .eq('is_active_vip_menu', true) // Chỉ lấy nhân viên cho VIP Menu
       .order('full_name');
 
     if (staffError) {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   type VipStaffInfo,
@@ -30,7 +30,7 @@ const FALLBACK_PRICING_TABLE: VipPricingTable = {
   '1': { '60': 690000, '70': 805000, '90': 1035000, '120': 1380000, '150': 1725000, '180': 2070000, '240': 2760000 },
   '2': { '60': 1080000, '70': 1260000, '90': 1530000, '120': 2040000, '150': 2550000, '180': 3060000, '240': 4080000 },
 };
-const TIME_SLOT_INTERVAL_MINUTES = 30;
+const TIME_SLOT_INTERVAL_MINUTES = 15;
 const DEFAULT_SHIFT_START = '09:00';
 const DEFAULT_SHIFT_END = '22:00';
 const SKILLS_VISIBLE_COUNT = 8; // Hiện tối đa 8 skills, có nút "Xem thêm"
@@ -81,6 +81,45 @@ const generateTimeSlots = (
   }
   return slots;
 };
+const useSpaPolicies = (lang: string = 'vi') => {
+  const [policies, setPolicies] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase');
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('SpaPolicies')
+          .select('contentVN, contentEN, contentCN, contentJP, contentKR')
+          .eq('is_active', true)
+          .order('order_index', { ascending: true });
+
+        if (data && !error) {
+          const mapLangToColumn = (l: string) => {
+            switch (l) {
+              case 'en': return 'contentEN';
+              case 'kr': return 'contentKR';
+              case 'jp': return 'contentJP';
+              case 'cn': return 'contentCN';
+              default: return 'contentVN';
+            }
+          };
+          const colName = mapLangToColumn(lang);
+          setPolicies(data.map((r: any) => r[colName]).filter(Boolean));
+        }
+      } catch (err) {
+        console.error('Failed to fetch SpaPolicies:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPolicies();
+  }, [lang]);
+
+  return { policies, loading };
+};
 
 interface BookingConfigProps {
   lang: string;
@@ -96,6 +135,9 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
   const t = getT(lang);
   const primaryStaff = selectedStaffInfoList[0];
   const pricingTable = vipPricingTable ?? FALLBACK_PRICING_TABLE;
+
+  // Fetch policies
+  const { policies, loading: loadingPolicies } = useSpaPolicies(lang);
 
   // State
   const [selectedSkillsMap, setSelectedSkillsMap] = useState<Record<string, string[]>>(
@@ -123,6 +165,8 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [bookingMethod, setBookingMethod] = useState<'advance' | 'branch' | null>(null);
   const [showAllSkills, setShowAllSkills] = useState(false);
+  const [isAgreedTerms, setIsAgreedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Calendar states
   const [showCalendar, setShowCalendar] = useState(false);
@@ -215,7 +259,24 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
     if (isToday) {
       const now = new Date();
       const nowMins = now.getHours() * 60 + now.getMinutes() + bufferMinutes;
-      startMins = Math.max(startMins, nowMins);
+      
+      // Kiểm tra KTV bận
+      let maxBusyMins = 0;
+      selectedStaffInfoList.forEach(staff => {
+        if (staff.availability === 'BUSY' && staff.estimatedEndTime) {
+          const mins = timeToMinutes(staff.estimatedEndTime);
+          if (mins > maxBusyMins) {
+            maxBusyMins = mins;
+          }
+        }
+      });
+
+      if (maxBusyMins > 0) {
+        const roundedBusyMins = Math.ceil(maxBusyMins / TIME_SLOT_INTERVAL_MINUTES) * TIME_SLOT_INTERVAL_MINUTES;
+        startMins = Math.max(startMins, nowMins, roundedBusyMins);
+      } else {
+        startMins = Math.max(startMins, nowMins);
+      }
     }
 
     // Clamp: nếu start > end → không còn slot
@@ -488,7 +549,7 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
                       {/* Custom Calendar Button */}
                       {(() => {
                         const isCustomDate = !dayChips.some(d => d.isoDate === selectedDateStr);
-                        let displayLabel = lang === 'vi' ? 'Ngày khác' : 'More...';
+                        let displayLabel = t.bc_moreDate;
                         if (isCustomDate && selectedDateStr) {
                           const [_, m, d] = selectedDateStr.split('-');
                           displayLabel = `${d}/${m}`;
@@ -502,7 +563,7 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
                                 : 'bg-[#1b1b1d] border-dashed border-[#4d463a]/50 text-[#998f81]'
                             }`}
                           >
-                            <span className="text-[9px] uppercase tracking-tighter opacity-70">Lịch 📅</span>
+                            <span className="text-[9px] uppercase tracking-tighter opacity-70">{t.bc_calendar}</span>
                             <span className="text-xs font-bold mt-1.5">{displayLabel}</span>
                           </button>
                         );
@@ -525,7 +586,7 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
                       />
                     ) : (
                       <p className="text-[#998f81] text-sm text-center py-4">
-                        {lang === 'vi' ? 'Không còn khung giờ trống' : 'No available time slots'}
+                        {t.bc_noTimeSlots}
                       </p>
                     )}
                     <p className="text-[9px] text-[#998f81] text-center mt-2">
@@ -549,6 +610,31 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="fixed bottom-6 inset-x-5 lg:inset-x-0 mx-auto lg:w-[500px] z-40"
           >
+            {/* Terms and Policies Checkbox */}
+            <div className="flex items-center gap-2 mb-3 px-2">
+              <button
+                onClick={() => setIsAgreedTerms(!isAgreedTerms)}
+                className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border transition-all ${
+                  isAgreedTerms
+                    ? 'bg-green-500 border-green-500'
+                    : 'bg-[#1b1b1d] border-[#4d463a] hover:border-[#e6c487]'
+                }`}
+              >
+                {isAgreedTerms && (
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                )}
+              </button>
+              <div className="text-[11px] text-[#998f81]">
+                {t.bc_terms_agree || 'Tôi đã đọc và đồng ý với '}{' '}
+                <button 
+                  onClick={() => setShowTermsModal(true)}
+                  className="text-[#e6c487] underline underline-offset-2 decoration-[#e6c487]/30 hover:decoration-[#e6c487]"
+                >
+                  <i>{t.bc_terms_title || 'Điều khoản & Chính sách'}</i>
+                </button>
+              </div>
+            </div>
+
             <div className="flex justify-between items-end mb-2 px-1">
               <div>
                 <div className="text-[10px] text-[#998f81] uppercase tracking-wider">{t.bc_selected}</div>
@@ -560,8 +646,13 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
               </div>
             </div>
             <button
+              disabled={!isAgreedTerms}
               onClick={() => onConfirm({ skillsMap: selectedSkillsMap, totalDuration: effectiveDuration, timeSlot: selectedSlot, totalPrice, appointmentDate: selectedDateStr })}
-              className="w-full py-4 rounded-full bg-[#e6c487] text-[#412d00] font-bold tracking-[0.12em] text-sm shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex items-center justify-center gap-3 active:scale-95 duration-200 uppercase"
+              className={`w-full py-4 rounded-full font-bold tracking-[0.12em] text-sm flex items-center justify-center gap-3 duration-200 uppercase ${
+                isAgreedTerms 
+                  ? 'bg-[#e6c487] text-[#412d00] shadow-[0_15px_30px_rgba(0,0,0,0.4)] active:scale-95' 
+                  : 'bg-[#4d463a]/50 text-[#998f81] cursor-not-allowed'
+              }`}
             >
               <span>{t.bc_confirmSelection}</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -597,7 +688,7 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
                 </button>
                 
                 <h4 className="font-serif italic text-lg text-[#e6c487]">
-                  {lang === 'vi' ? 'Tháng ' : 'Month '}{currentCalendarMonth + 1}, {currentCalendarYear}
+                  {t.bc_month}{currentCalendarMonth + 1}, {currentCalendarYear}
                 </h4>
 
                 <button
@@ -617,13 +708,13 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
 
               {/* Grid Header */}
               <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-[#998f81] font-bold mb-2">
-                <div>T2</div>
-                <div>T3</div>
-                <div>T4</div>
-                <div>T5</div>
-                <div>T6</div>
-                <div>T7</div>
-                <div className="text-red-400">CN</div>
+                <div>{t.cal_t2}</div>
+                <div>{t.cal_t3}</div>
+                <div>{t.cal_t4}</div>
+                <div>{t.cal_t5}</div>
+                <div>{t.cal_t6}</div>
+                <div>{t.cal_t7}</div>
+                <div className="text-red-400">{t.cal_cn}</div>
               </div>
 
               {/* Grid Days */}
@@ -667,7 +758,69 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
                   onClick={() => setShowCalendar(false)}
                   className="px-4 py-2 text-xs font-bold text-[#e6c487] hover:bg-[#e6c487]/10 rounded-xl transition-colors"
                 >
-                  {lang === 'vi' ? 'Đóng' : 'Close'}
+                  {t.bc_close}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Terms Modal */}
+      <AnimatePresence>
+        {showTermsModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-5">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="bg-[#131315] border border-[#e6c487]/30 rounded-3xl p-6 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col max-h-[80vh]"
+            >
+              <div className="flex justify-between items-center mb-5 pb-4 border-b border-[#4d463a]/30">
+                <h4 className="font-serif italic text-xl text-[#e6c487]">
+                  {t.bc_terms_title || 'Điều khoản & Chính sách'}
+                </h4>
+                <button
+                  onClick={() => setShowTermsModal(false)}
+                  className="text-[#998f81] hover:text-[#e4e2e4] p-1"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              
+              <div className="overflow-y-auto pr-2 space-y-4 text-sm text-[#d0c5b5] leading-relaxed custom-scrollbar">
+                {loadingPolicies ? (
+                  <div className="text-center py-4 text-[#e6c487]/50">Đang tải...</div>
+                ) : policies.length > 0 ? (
+                  policies.map((policy, idx) => (
+                    <div key={idx} className="flex gap-3">
+                      <span className="text-[#e6c487] font-bold">{idx + 1}.</span>
+                      <p>{policy}</p>
+                    </div>
+                  ))
+                ) : (
+                  // Fallback khi chưa có DB
+                  <>
+                    <div className="flex gap-3">
+                      <span className="text-[#e6c487] font-bold">1.</span>
+                      <p>Đối với đặt lịch tự do (chưa chọn thời gian cụ thể), hệ thống sẽ ghi nhận và bộ phận CSKH của Spa sẽ trực tiếp xác nhận, liên hệ chốt giờ với Quý khách.</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="text-[#e6c487] font-bold">2.</span>
+                      <p>Quý khách vui lòng đến đúng giờ hẹn. Trong trường hợp đến sớm hoặc trễ hơn dự kiến, Quý khách có thể sẽ phải chờ để nhân viên sắp xếp chỗ.</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#4d463a]/30">
+                <button
+                  onClick={() => {
+                    setIsAgreedTerms(true);
+                    setShowTermsModal(false);
+                  }}
+                  className="w-full py-3 rounded-xl bg-[#e6c487]/10 text-[#e6c487] border border-[#e6c487]/30 font-bold text-sm hover:bg-[#e6c487]/20 transition-colors"
+                >
+                  ĐỒNG Ý
                 </button>
               </div>
             </motion.div>
