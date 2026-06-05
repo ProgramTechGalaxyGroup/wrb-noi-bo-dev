@@ -150,4 +150,5 @@ export interface VipStaffInfo {
   shiftType: ShiftType | null;
   shiftStart: string | null;  // HH:mm — shift start time
   shiftEnd: string | null;    // HH:mm — shift end time
+  queuePosition?: number;     // KTV position in the turn queue (số tua)
 }

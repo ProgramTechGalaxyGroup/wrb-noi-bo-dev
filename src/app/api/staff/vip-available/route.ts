@@ -72,7 +72,7 @@ export async function GET(_req: NextRequest) {
 
     const { data: turnQueueList, error: tqError } = await supabase
       .from('TurnQueue')
-      .select('employee_id, status, estimated_end_time, current_order_id')
+      .select('employee_id, status, estimated_end_time, current_order_id, queue_position')
       .eq('date', today)
       .in('employee_id', staffIds);
 
@@ -106,13 +106,14 @@ export async function GET(_req: NextRequest) {
     // ─── Step 4: Build lookup maps ───────────────────────────────────────────
     const turnQueueMap = new Map<
       string,
-      { status: string; estimated_end_time: string | null; current_order_id: string | null }
+      { status: string; estimated_end_time: string | null; current_order_id: string | null; queue_position: number | null }
     >();
     for (const tq of turnQueueList ?? []) {
       turnQueueMap.set(tq.employee_id, {
         status: tq.status,
         estimated_end_time: tq.estimated_end_time,
         current_order_id: tq.current_order_id,
+        queue_position: tq.queue_position ?? null,
       });
     }
 
@@ -157,6 +158,8 @@ export async function GET(_req: NextRequest) {
       let estimatedEndTime: string | null = null;
       let currentOrderId: string | null = null;
 
+      let queuePosition = 999;
+
       if (tq) {
         // Đã check-in → TurnQueue wins (kể cả có LeaveRequest)
         if (tq.status === 'waiting') {
@@ -170,6 +173,7 @@ export async function GET(_req: NextRequest) {
         } else {
           availability = 'NOT_YET';
         }
+        queuePosition = tq.queue_position ?? 999;
       } else if (isOnLeave) {
         // Chưa check-in + có đơn OFF → ON_LEAVE
         availability = 'ON_LEAVE';
@@ -191,10 +195,11 @@ export async function GET(_req: NextRequest) {
         shiftType,
         shiftStart,
         shiftEnd,
+        queuePosition,
       };
     });
 
-    // ─── Step 6: Sort — AVAILABLE first ─────────────────────────────────────
+    // ─── Step 6: Sort — AVAILABLE first & queuePosition ───────────────────
     const SORT_ORDER: Record<StaffAvailability, number> = {
       AVAILABLE: 0,
       BUSY: 1,
@@ -203,7 +208,16 @@ export async function GET(_req: NextRequest) {
       ON_LEAVE: 4,
     };
 
-    result.sort((a, b) => SORT_ORDER[a.availability] - SORT_ORDER[b.availability]);
+    result.sort((a, b) => {
+      const diff = SORT_ORDER[a.availability] - SORT_ORDER[b.availability];
+      if (diff !== 0) return diff;
+
+      const aPos = a.queuePosition ?? 999;
+      const bPos = b.queuePosition ?? 999;
+      if (aPos !== bPos) return aPos - bPos;
+
+      return a.id.localeCompare(b.id);
+    });
 
     return NextResponse.json({ staff: result });
 

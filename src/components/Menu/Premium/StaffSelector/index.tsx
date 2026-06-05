@@ -85,10 +85,18 @@ const StaffSelector = ({ lang, preferredCategoryId, onConfirmSelection }: StaffS
   }, [staffList, searchQuery]);
 
   // Sort: AVAILABLE → BUSY → NOT_YET → OFF_DUTY → ON_LEAVE
+  // And within the same status, sort by queuePosition (sổ tua)
   const sortedStaff = useMemo(() => {
     return [...filteredStaff].sort((a, b) => {
       const ORDER: Record<string, number> = { AVAILABLE: 0, BUSY: 1, NOT_YET: 2, OFF_DUTY: 3, ON_LEAVE: 4 };
-      return (ORDER[a.availability] ?? 9) - (ORDER[b.availability] ?? 9);
+      const diff = (ORDER[a.availability] ?? 9) - (ORDER[b.availability] ?? 9);
+      if (diff !== 0) return diff;
+
+      const aPos = a.queuePosition ?? 999;
+      const bPos = b.queuePosition ?? 999;
+      if (aPos !== bPos) return aPos - bPos;
+
+      return a.id.localeCompare(b.id);
     });
   }, [filteredStaff]);
 
