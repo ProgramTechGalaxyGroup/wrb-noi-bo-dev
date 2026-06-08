@@ -5,9 +5,10 @@ interface CheckoutHeaderProps {
     title: string;
     backLabel?: string;
     onBack: () => void;
+    rightAction?: React.ReactNode;
 }
 
-export default function CheckoutHeader({ title, backLabel = "Menu", onBack }: CheckoutHeaderProps) {
+export default function CheckoutHeader({ title, backLabel = "Menu", onBack, rightAction }: CheckoutHeaderProps) {
     return (
         <div className="sticky top-0 z-50 bg-[#0d0d0d]/95 backdrop-blur-sm pb-4 mb-6 shadow-sm border-b border-white/10 transition-all pt-[calc(env(safe-area-inset-top))]">
             {/* Top Bar: Back + Title */}
@@ -22,7 +23,11 @@ export default function CheckoutHeader({ title, backLabel = "Menu", onBack }: Ch
                 <h1 className="text-[#C9A96E] font-bold text-base absolute left-1/2 -translate-x-1/2">
                     {title}
                 </h1>
-                <div className="w-10"></div> {/* Spacer for alignment */}
+                {rightAction ? (
+                    rightAction
+                ) : (
+                    <div className="w-10"></div> /* Spacer for alignment */
+                )}
             </div>
 
             {/* Branding Row */}

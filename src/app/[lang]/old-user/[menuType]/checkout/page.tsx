@@ -22,9 +22,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
 
     // Unwrap params
     const { lang: rawLang } = use(params);
-    const lang = rawLang;
+    const [activeLang, setActiveLang] = useState(rawLang);
+    const [originalLang] = useState(rawLang);
 
-    const dict = getDictionary(lang);
+    const dict = getDictionary(activeLang);
 
     // --- STATE ---
 
@@ -161,7 +162,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
             amountPaid: parseInt(amountPaid.replace(/\./g, '') || '0', 10),
             changeDenominations,
             totalVND,
-            lang: lang
+            lang: rawLang
         };
 
         const res = await fetch('/api/orders', {
@@ -193,6 +194,15 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 title={dict.checkout.title}
                 backLabel={dict.common?.back_to_menu}
                 onBack={handleBack}
+                rightAction={
+                    <button
+                        type="button"
+                        onClick={() => setActiveLang(activeLang === 'vi' ? originalLang : 'vi')}
+                        className="bg-[#131315]/40 hover:bg-[#1b1b1d]/80 text-[#e6c487]/70 hover:text-[#e6c487] text-[9px] font-black tracking-widest uppercase px-2.5 py-1.5 rounded-lg border border-[#4d463a]/20 shadow-sm active:scale-95 transition-all flex items-center gap-1"
+                    >
+                        🌐 {activeLang === 'vi' ? `ORIG (${originalLang.toUpperCase()})` : 'DỊCH VN'}
+                    </button>
+                }
             />
 
             <main className="p-4 lg:p-8 max-w-6xl mx-auto min-h-screen">
@@ -201,7 +211,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                     {/* 1. Customer Info (Mobile: Item 1, Desktop: Item 1 - Left Col) */}
                     <div className="w-full lg:col-span-7 lg:row-start-1">
                         <CustomerInfo
-                            lang={lang}
+                            lang={activeLang}
                             dict={dict}
                             info={customerInfo}
                             onChange={handleCustomerChange}
@@ -214,7 +224,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                         <div className="lg:sticky lg:top-4">
                             <Invoice
                                 cart={cart}
-                                lang={lang}
+                                lang={activeLang}
                                 dict={dict}
                                 currency={currency}
                                 onCustomRequest={handleCustomRequest}
@@ -252,7 +262,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onSave={handleSaveCustomRequest}
-                    lang={lang as any}
+                    lang={activeLang as any}
                     serviceData={{
                         ID: selectedCartItem.id,
                         NAMES: selectedCartItem.names as any,
@@ -269,7 +279,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 isOpen={isPaymentModalOpen}
                 onClose={() => setIsPaymentModalOpen(false)}
                 onNext={handlePaymentNext}
-                lang={lang}
+                lang={activeLang}
                 dict={dict}
                 totalVND={totalVND}
                 totalUSD={totalUSD}
@@ -279,7 +289,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 isOpen={isConfirmOpen}
                 onClose={() => setIsConfirmOpen(false)}
                 onConfirm={handleFinalSubmit}
-                lang={lang}
+                lang={activeLang}
                 dict={dict}
                 cart={cart}
                 customerInfo={customerInfo}
@@ -292,7 +302,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 message={alertState.message}
                 type={alertState.type}
                 onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))}
-                lang={lang}
+                lang={activeLang}
             />
         </div>
     );
