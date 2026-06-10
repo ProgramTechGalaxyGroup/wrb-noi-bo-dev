@@ -26,7 +26,7 @@ export async function handleVipItems(
             return name;
         });
         const uniqueSkillNames = [...new Set(skillNames)];
-        const displayName = item.vipDisplayName || (uniqueSkillNames.length > 0 ? uniqueSkillNames.join(' + ') : 'Gói VIP');
+        const displayName = uniqueSkillNames.length > 0 ? uniqueSkillNames.join(' + ') : (item.vipDisplayName || 'Gói VIP');
 
         return {
             id: `${bookingId}-vip${startIndex + index + 1}`,
@@ -54,3 +54,4 @@ export async function handleVipItems(
         throw error;
     }
 }
+
