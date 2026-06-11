@@ -14,7 +14,10 @@ export interface ServiceData {
     PRICE_USD?: number;
     // UI Configuration Flags (Task E2+E3)
     SHOW_NOTES?: boolean;           // Show/hide Notes section
-    SHOW_PREFERENCES?: boolean;     // Show/hide Preferences (Strength + Therapist Gender)
+    SHOW_PREFERENCES?: boolean;     // Legacy
+    SHOW_GENDER?: boolean;
+    SHOW_STRENGTH?: boolean;
+    SHOW_FOCUS?: boolean;
 }
 
 // Cấu trúc Data Lưu Trữ preferences của khách
@@ -39,3 +42,4 @@ export interface MultiLangText {
     kr: string;
     cn: string;
 }
+

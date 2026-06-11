@@ -266,6 +266,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                         FOCUS_POSITION: selectedCartItem.FOCUS_POSITION as any,
                         TAGS: selectedCartItem.TAGS as any,
                         SHOW_STRENGTH: selectedCartItem.SHOW_STRENGTH,
+                        SHOW_GENDER: selectedCartItem.SHOW_GENDER,
+                        SHOW_FOCUS: selectedCartItem.SHOW_FOCUS,
+                        SHOW_NOTES: selectedCartItem.SHOW_NOTES,
+                        SHOW_PREFERENCES: selectedCartItem.SHOW_PREFERENCES,
                         HINT: selectedCartItem.HINT as any
                     }}
                     initialData={selectedCartItem.options as any}

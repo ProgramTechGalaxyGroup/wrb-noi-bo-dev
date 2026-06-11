@@ -57,7 +57,7 @@ export const getMenuData = async (): Promise<Service[]> => {
                 TAGS: item.tags || [],
                 FOCUS_POSITION: item.focusConfig,
                 comboTags: item.comboTags || [],
-                SHOW_STRENGTH: item.showPreferences !== false, // Default true, hide if showPreferences is false
+                // SHOW_STRENGTH removed here
                 HINT: item.HINT, // Để lại nếu có map sau này
 
                 // UI Configuration Flags (Task E2+E3)
@@ -81,4 +81,5 @@ export const getMenuData = async (): Promise<Service[]> => {
         return [];
     }
 };
+
 

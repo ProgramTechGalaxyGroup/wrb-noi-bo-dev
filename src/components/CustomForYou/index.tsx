@@ -127,7 +127,9 @@ export default function CustomForYouModal({
 
     // Task E3: Check visibility flags (default true for backward compatibility)
     const showNotes = serviceData.SHOW_NOTES !== false;
-    const showPreferences = serviceData.SHOW_PREFERENCES !== false;
+    const showPreferences = serviceData.SHOW_PREFERENCES !== false && (!!serviceData.SHOW_STRENGTH || serviceData.SHOW_GENDER !== false);
+    const showGender = serviceData.SHOW_GENDER !== false;
+    const showFocus = serviceData.SHOW_FOCUS !== false;
 
     return (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-200">
@@ -169,13 +171,14 @@ export default function CustomForYouModal({
                                 <Preferences
                                     lang={lang}
                                     showStrength={!!serviceData.SHOW_STRENGTH}
+                                    showGender={showGender}
                                     values={{ strength: prefs.strength, therapist: prefs.therapist }}
                                     onChange={handlePrefChange}
                                 />
                             )}
 
                             {/* 2. Body Map & Focus Areas */}
-                            {showBodyMap && (
+                            {showBodyMap && showFocus && (
                                 <div>
                                     <BodyMap
                                         focus={prefs.bodyParts?.focus || []}
@@ -225,3 +228,4 @@ export default function CustomForYouModal({
         </div>
     );
 }
+
