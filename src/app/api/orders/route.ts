@@ -100,12 +100,23 @@ export async function POST(request: Request) {
         };
 
         // Add VAT invoice info if provided
+        console.log('[API Order] vatInvoice received:', JSON.stringify(vatInvoice));
         if (vatInvoice && vatInvoice.taxCode) {
             customerData.taxCode = vatInvoice.taxCode;
             customerData.companyName = vatInvoice.companyName || null;
             customerData.companyAddress = vatInvoice.companyAddress || null;
+            customerData.companyEmail = vatInvoice.companyEmail || null;
+            customerData.companyPhone = vatInvoice.companyPhone || null;
+            console.log('[API Order] VAT data added to customerData:', {
+                taxCode: customerData.taxCode,
+                companyName: customerData.companyName,
+                companyAddress: customerData.companyAddress,
+                companyEmail: customerData.companyEmail,
+                companyPhone: customerData.companyPhone
+            });
         }
 
+        console.log('[API Order] Final customerData keys:', Object.keys(customerData));
         const { error: customerError } = await supabaseAdmin
             .from('Customers')
             .upsert(customerData, { onConflict: 'id', ignoreDuplicates: false });

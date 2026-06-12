@@ -620,6 +620,18 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
                                         <span className="text-gray-300 text-sm">{vatInvoice.companyAddress}</span>
                                     </div>
                                 )}
+                                {vatInvoice.companyEmail && (
+                                    <div className="flex items-start gap-2">
+                                        <Mail size={16} className="text-gray-400 mt-0.5 shrink-0" />
+                                        <span className="text-gray-300 text-sm">{vatInvoice.companyEmail}</span>
+                                    </div>
+                                )}
+                                {vatInvoice.companyPhone && (
+                                    <div className="flex items-start gap-2">
+                                        <Phone size={16} className="text-gray-400 mt-0.5 shrink-0" />
+                                        <span className="text-gray-300 text-sm">{vatInvoice.companyPhone}</span>
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-2 pt-1">
                                     <span className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">MST</span>
                                     <span className="text-[#C9A96E] text-sm font-mono font-bold bg-[#C9A96E]/10 px-2 py-0.5 rounded-lg">

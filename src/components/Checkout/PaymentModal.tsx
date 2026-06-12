@@ -117,6 +117,16 @@ export default function PaymentModal({
             });
             return;
         }
+
+        // Validate VAT invoice: if checked and looked up, email + phone are required
+        if (vatInvoice && (!vatInvoice.companyEmail?.trim() || !vatInvoice.companyPhone?.trim())) {
+            setAlertState({
+                isOpen: true,
+                message: dict.vat_invoice?.required_fields || (dict.vat_invoice ? 'Vui lòng nhập Email và SĐT công ty' : 'Please enter company Email and Phone'),
+                type: 'error'
+            });
+            return;
+        }
         
         // Pass data up to Checkout Page state
         onNext({

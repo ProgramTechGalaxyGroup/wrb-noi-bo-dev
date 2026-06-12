@@ -177,7 +177,10 @@ const dictionaries = {
             address: "Address",
             not_found: "Tax code not found. Please check and try again.",
             error: "Lookup failed. Please try again.",
-            invoice_info_title: "VAT INVOICE INFO"
+            invoice_info_title: "VAT INVOICE INFO",
+            email: "Company Email *",
+            phone: "Company Phone *",
+            required_fields: "Please enter company Email and Phone"
         }
     },
 
@@ -351,7 +354,10 @@ const dictionaries = {
             address: "Địa chỉ",
             not_found: "Không tìm thấy MST. Vui lòng kiểm tra lại.",
             error: "Tra cứu thất bại. Vui lòng thử lại.",
-            invoice_info_title: "THÔNG TIN XUẤT HOÁ ĐƠN"
+            invoice_info_title: "THÔNG TIN XUẤT HOÁ ĐƠN",
+            email: "Email công ty *",
+            phone: "SĐT công ty *",
+            required_fields: "Vui lòng nhập Email và SĐT công ty"
         }
     },
 
@@ -525,7 +531,10 @@ const dictionaries = {
             address: "주소",
             not_found: "사업자등록번호를 찾을 수 없습니다. 확인 후 다시 시도해주세요.",
             error: "조회 실패. 다시 시도해주세요.",
-            invoice_info_title: "세금계산서 정보"
+            invoice_info_title: "세금계산서 정보",
+            email: "회사 이메일 *",
+            phone: "회사 전화번호 *",
+            required_fields: "회사 이메일과 전화번호를 입력해주세요"
         }
     },
 
@@ -699,7 +708,10 @@ const dictionaries = {
             address: "地址",
             not_found: "未找到该税号，请检查后重试。",
             error: "查询失败，请重试。",
-            invoice_info_title: "增值税发票信息"
+            invoice_info_title: "增值税发票信息",
+            email: "公司邮箱 *",
+            phone: "公司电话 *",
+            required_fields: "请输入公司邮箱和电话"
         }
     },
 
@@ -873,7 +885,10 @@ const dictionaries = {
             address: "住所",
             not_found: "税コードが見つかりません。確認して再試行してください。",
             error: "検索に失敗しました。もう一度お試しください。",
-            invoice_info_title: "VAT請求書情報"
+            invoice_info_title: "VAT請求書情報",
+            email: "会社メール *",
+            phone: "会社電話 *",
+            required_fields: "会社のメールアドレスと電話番号を入力してください"
         }
     }
 };
