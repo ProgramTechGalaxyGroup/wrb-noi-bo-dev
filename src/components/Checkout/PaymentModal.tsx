@@ -109,6 +109,7 @@ export default function PaymentModal({
     };
 
     const handleConfirmNext = () => {
+        console.log('[PaymentModal] handleConfirmNext called. vatInvoice:', JSON.stringify(vatInvoice));
         if (!paymentMethod) {
             setAlertState({
                 isOpen: true,
@@ -129,6 +130,7 @@ export default function PaymentModal({
         }
         
         // Pass data up to Checkout Page state
+        console.log('[PaymentModal] Calling onNext with vatInvoice:', vatInvoice ? 'HAS DATA' : 'NULL');
         onNext({
             paymentMethod,
             amountPaid,

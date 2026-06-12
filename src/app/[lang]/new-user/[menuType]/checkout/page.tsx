@@ -13,6 +13,7 @@ import OrderConfirmModal from '@/components/Checkout/OrderConfirmModal';
 import CustomForYouModal from '@/components/CustomForYou';
 import AlertModal from '@/components/Shared/AlertModal';
 import { ServiceOptions, CartItem } from '@/components/Menu/types';
+import { type VatInvoiceData } from '@/components/Checkout/VatInvoiceSection';
 import { getDictionary } from '@/lib/dictionaries';
 
 // 🔧 UI CONFIGURATION
@@ -58,6 +59,9 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
     const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
     const [changeDenominations, setChangeDenominations] = useState<number[]>([]);
     const [alertState, setAlertState] = useState<{ isOpen: boolean; message: string; type?: 'error' | 'success' | 'info' }>({ isOpen: false, message: '' });
+
+    // VAT Invoice (5B persist: state lives at page level)
+    const [vatInvoice, setVatInvoice] = useState<VatInvoiceData | null>(null);
 
     // --- COMPUTED ---
     const currency = useMemo(() => paymentMethod === 'cash_usd' ? 'USD' : 'VND', [paymentMethod]);
@@ -140,10 +144,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
         setIsPaymentModalOpen(true);
     };
 
-    const handlePaymentNext = (data: { paymentMethod: string; amountPaid: string; changeDenominations: number[] }) => {
+    const handlePaymentNext = (data: { paymentMethod: string; amountPaid: string; changeDenominations: number[]; vatInvoice?: VatInvoiceData | null }) => {
         setPaymentMethod(data.paymentMethod);
         setAmountPaid(data.amountPaid);
         setChangeDenominations(data.changeDenominations);
+        setVatInvoice(data.vatInvoice || null); // 5B persist
         setIsPaymentModalOpen(false);
         setTimeout(() => setIsConfirmOpen(true), 300);
     };
@@ -151,6 +156,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
 
     // ... (Final Submit remains same) ...
     const handleFinalSubmit = async () => {
+        console.log('[Checkout new-user] handleFinalSubmit — vatInvoice state:', JSON.stringify(vatInvoice));
         const payload = {
             customer: customerInfo,
             items: cart,
@@ -158,7 +164,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
             amountPaid: parseInt(amountPaid.replace(/\./g, '') || '0', 10),
             changeDenominations,
             totalVND, // Keep for legacy backend compatibility
-            lang: rawLang
+            lang: rawLang,
+            vatInvoice,
         };
 
         const res = await fetch('/api/orders', {
@@ -284,6 +291,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 dict={dict}
                 totalVND={totalVND}
                 totalUSD={totalUSD}
+                initialVatInvoice={vatInvoice}
             />
 
             <OrderConfirmModal
@@ -296,6 +304,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 customerInfo={customerInfo}
                 paymentMethod={paymentMethod}
                 amountPaid={parseInt(amountPaid.replace(/\./g, '') || '0', 10)}
+                vatInvoice={vatInvoice}
             />
 
             <AlertModal

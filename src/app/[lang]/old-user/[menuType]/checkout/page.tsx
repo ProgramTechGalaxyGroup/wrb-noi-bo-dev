@@ -160,6 +160,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
 
 
     const handleFinalSubmit = async () => {
+        console.log('[Checkout] handleFinalSubmit — vatInvoice state:', JSON.stringify(vatInvoice));
         const payload = {
             customer: customerInfo,
             items: cart,
