@@ -169,15 +169,15 @@ const dictionaries = {
             no_visits: "No visits found."
         },
         vat_invoice: {
-            checkbox_label: "Do you want a VAT invoice?",
+            checkbox_label: "Do you need a VAT invoice?",
             tax_code_placeholder: "Enter Tax Code (e.g. 0316794479)",
-            lookup_btn: "Look up",
-            looking_up: "Looking up...",
+            lookup_btn: "Search",
+            looking_up: "Searching...",
             company_name: "Company Name",
             address: "Address",
             not_found: "Tax code not found. Please check and try again.",
-            error: "Lookup failed. Please try again.",
-            invoice_info_title: "VAT INVOICE INFO",
+            error: "Search failed. Please try again.",
+            invoice_info_title: "VAT INVOICE DETAILS",
             email: "Company Email *",
             phone: "Company Phone *",
             required_fields: "Please enter company Email and Phone"
@@ -346,7 +346,7 @@ const dictionaries = {
             no_visits: "Không tìm thấy chuyến ghé thăm nào."
         },
         vat_invoice: {
-            checkbox_label: "Bạn có muốn xuất hoá đơn?",
+            checkbox_label: "Bạn có cần xuất hoá đơn không ?",
             tax_code_placeholder: "Nhập mã số thuế (VD: 0316794479)",
             lookup_btn: "Tra cứu",
             looking_up: "Đang tra cứu...",
@@ -523,14 +523,14 @@ const dictionaries = {
             no_visits: "방문 기록이 없습니다."
         },
         vat_invoice: {
-            checkbox_label: "세금계산서를 발행하시겠습니까?",
+            checkbox_label: "세금계산서가 필요하십니까?",
             tax_code_placeholder: "사업자등록번호 입력 (예: 0316794479)",
-            lookup_btn: "조회",
-            looking_up: "조회 중...",
+            lookup_btn: "검색",
+            looking_up: "검색 중...",
             company_name: "회사명",
             address: "주소",
             not_found: "사업자등록번호를 찾을 수 없습니다. 확인 후 다시 시도해주세요.",
-            error: "조회 실패. 다시 시도해주세요.",
+            error: "검색에 실패했습니다. 다시 시도해 주세요.",
             invoice_info_title: "세금계산서 정보",
             email: "회사 이메일 *",
             phone: "회사 전화번호 *",
@@ -700,14 +700,14 @@ const dictionaries = {
             no_visits: "未找到访问记录。"
         },
         vat_invoice: {
-            checkbox_label: "您需要开具增值税发票吗？",
+            checkbox_label: "您需要开具发票吗？",
             tax_code_placeholder: "输入税号 (例: 0316794479)",
-            lookup_btn: "查询",
-            looking_up: "正在查询...",
+            lookup_btn: "搜索",
+            looking_up: "正在搜索...",
             company_name: "公司名称",
             address: "地址",
             not_found: "未找到该税号，请检查后重试。",
-            error: "查询失败，请重试。",
+            error: "搜索失败，请稍后重试。",
             invoice_info_title: "增值税发票信息",
             email: "公司邮箱 *",
             phone: "公司电话 *",
@@ -877,7 +877,7 @@ const dictionaries = {
             no_visits: "訪問履歴が見つかりません。"
         },
         vat_invoice: {
-            checkbox_label: "VAT請求書を発行しますか？",
+            checkbox_label: "領収書は必要ですか？",
             tax_code_placeholder: "税コードを入力 (例: 0316794479)",
             lookup_btn: "検索",
             looking_up: "検索中...",
