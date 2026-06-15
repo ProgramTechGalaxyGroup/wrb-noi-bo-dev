@@ -16,6 +16,13 @@ interface PaymentModalProps {
     totalVND: number;
     totalUSD: number;
     initialVatInvoice?: VatInvoiceData | null; // 5B persist
+    
+    // Props cho Booking Flow
+    isBookingFlow?: boolean;
+    isAgreedTerms?: boolean;
+    onAgreeTermsChange?: (agreed: boolean) => void;
+    bookingReminder?: string;
+    termsText?: React.ReactNode;
 }
 
 export default function PaymentModal({
@@ -26,7 +33,12 @@ export default function PaymentModal({
     dict,
     totalVND,
     totalUSD,
-    initialVatInvoice
+    initialVatInvoice,
+    isBookingFlow,
+    isAgreedTerms,
+    onAgreeTermsChange,
+    bookingReminder,
+    termsText
 }: PaymentModalProps) {
     const [isClosing, setIsClosing] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
@@ -128,6 +140,16 @@ export default function PaymentModal({
             });
             return;
         }
+
+        // Validate Terms (nếu là luồng Đặt lịch)
+        if (isBookingFlow && !isAgreedTerms) {
+            setAlertState({
+                isOpen: true,
+                message: dict.checkout?.alerts?.agree_terms || 'Vui lòng đồng ý với Điều Khoản & Chính Sách',
+                type: 'error'
+            });
+            return;
+        }
         
         // Pass data up to Checkout Page state
         console.log('[PaymentModal] Calling onNext with vatInvoice:', vatInvoice ? 'HAS DATA' : 'NULL');
@@ -172,13 +194,21 @@ export default function PaymentModal({
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-                    {/* Pay Warning Banner */}
-                    <div
-                        className="bg-[#0d0d0d] border border-white/10 p-3 rounded-xl flex items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors"
-                        onClick={() => setShowWarningModal(true)}
-                    >
-                        <span className="text-[#C9A96E] font-bold text-sm">*{dict.checkout?.pay_warning}</span>
-                    </div>
+                    {/* Pay Warning Banner (hoặc Booking Reminder) */}
+                    {isBookingFlow && bookingReminder ? (
+                        <div className="bg-[#e6c487]/10 border border-[#e6c487]/30 rounded-xl p-4 text-center mb-2">
+                            <p className="text-[#e6c487] text-xs font-medium leading-relaxed">
+                                {bookingReminder}
+                            </p>
+                        </div>
+                    ) : (
+                        <div
+                            className="bg-[#0d0d0d] border border-white/10 p-3 rounded-xl flex items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors"
+                            onClick={() => setShowWarningModal(true)}
+                        >
+                            <span className="text-[#C9A96E] font-bold text-sm">*{dict.checkout?.pay_warning}</span>
+                        </div>
+                    )}
 
                     <PaymentMethods
                         lang={lang}
@@ -275,8 +305,27 @@ export default function PaymentModal({
                     </div>
                 </div>
 
-                {/* Footer Action */}
-                <div className="p-4 bg-[#1c1c1e] border-t border-white/10">
+                {/* Footer Action (Terms Checkbox & Submit Button) */}
+                <div className="p-4 bg-[#1c1c1e] border-t border-white/10 space-y-4">
+                    {/* Terms Checkbox for Booking Flow */}
+                    {isBookingFlow && (
+                        <div className="bg-[#0d0d0d] rounded-2xl p-4 border border-white/5">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => onAgreeTermsChange && onAgreeTermsChange(!isAgreedTerms)}
+                                    className={`w-6 h-6 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                        isAgreedTerms ? 'bg-[#e6c487] border-[#e6c487] text-black' : 'border-gray-600'
+                                    }`}
+                                >
+                                    {isAgreedTerms && <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                </button>
+                                <span className="text-sm text-gray-400">
+                                    {termsText}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     <button
                         onClick={handleConfirmNext}
                         className="w-full py-4 bg-[#C9A96E] text-white font-bold uppercase rounded-xl shadow-[0_0_15px_rgba(201,169,110,0.3)] hover:bg-[#b09461] active:scale-[0.98] transition-all text-lg"

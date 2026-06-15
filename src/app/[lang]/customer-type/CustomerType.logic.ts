@@ -128,7 +128,8 @@ export const useCustomerTypeLogic = (lang: string) => {
 
     // Functions
     t,
-    onSelectNewUser,
+    onSelectWalkIn,
+    onSelectAdvance,
     onSelectOldUser,
     handleCheckUserEmail,
     handleRetry,

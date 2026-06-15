@@ -28,6 +28,7 @@ const PROGRESS_MAP: Record<string, string> = {
 
 interface PremiumMenuProps {
   lang: string;
+  isBookingFlow?: boolean;
   onBack: () => void;
   onCheckout: () => void;
   onSwitchToStandard?: () => void;
@@ -35,7 +36,7 @@ interface PremiumMenuProps {
 
 type MenuStep = 'STAFF' | 'BOOKING_CONFIG' | 'CONFIRMATION';
 
-const PremiumMenu = ({ lang, onBack, onCheckout, onSwitchToStandard }: PremiumMenuProps) => {
+const PremiumMenu = ({ lang, isBookingFlow, onBack, onCheckout, onSwitchToStandard }: PremiumMenuProps) => {
   const t = getT(lang);
   const { addVipToCart } = useMenuData();
   const [step, setStep] = useState<MenuStep>('STAFF');
@@ -149,15 +150,14 @@ const PremiumMenu = ({ lang, onBack, onCheckout, onSwitchToStandard }: PremiumMe
               <motion.div key="booking" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }} className="w-full">
                 <BookingConfig
                   lang={lang}
+                  isBookingFlow={isBookingFlow}
                   selectedStaffIds={selectedStaffIds}
                   selectedStaffInfoList={selectedStaffInfoList}
                   vipPricingTable={vipPricingTable}
                   bufferMinutes={bufferMinutes}
                   onConfirm={(data) => {
-                    // Check if walk-in (branch) → add to cart → checkout
-                    const isWalkIn = !data.timeSlot || data.timeSlot === 'BRANCH_DECIDE';
-
-                    if (isWalkIn) {
+                    // Check if walk-in → add to cart → checkout
+                    if (!isBookingFlow) {
                       // Build display name from skills
                       const allSkillIds = Object.values(data.skillsMap).flat();
                       const skillNames = allSkillIds.map((id: string) => {

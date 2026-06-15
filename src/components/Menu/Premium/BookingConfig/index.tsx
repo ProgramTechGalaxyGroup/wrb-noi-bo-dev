@@ -16,7 +16,7 @@ import {
   type VipDuration,
 } from '@/lib/vipPricingEngine';
 import { getT, tpl, DAY_KEYS } from '../Premium.i18n';
-import FlipTimePicker from './FlipTimePicker';
+import FlipTimePicker from '@/components/Booking/FlipTimePicker';
 
 // =============================================
 // 📅 Booking Config – REAL DATA (Pha 3)
@@ -123,6 +123,7 @@ const useSpaPolicies = (lang: string = 'vi') => {
 
 interface BookingConfigProps {
   lang: string;
+  isBookingFlow?: boolean;
   selectedStaffIds: string[];
   selectedStaffInfoList: VipStaffInfo[];
   vipPricingTable?: VipPricingTable;
@@ -131,7 +132,7 @@ interface BookingConfigProps {
   onConfirm: (data: { skillsMap: Record<string, string[]>; totalDuration: number; timeSlot: string | null; totalPrice: number; appointmentDate: string | null; customerNotes?: string }) => void;
 }
 
-const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPricingTable, bufferMinutes = 30, onConfirm }: BookingConfigProps) => {
+const BookingConfig = ({ lang, isBookingFlow, selectedStaffIds, selectedStaffInfoList, vipPricingTable, bufferMinutes = 30, onConfirm }: BookingConfigProps) => {
   const t = getT(lang);
   const primaryStaff = selectedStaffInfoList[0];
   const pricingTable = vipPricingTable ?? FALLBACK_PRICING_TABLE;
@@ -163,7 +164,6 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
   const [selectedDateStr, setSelectedDateStr] = useState<string>(dayChips[0].isoDate);
   const [selectedDuration, setSelectedDuration] = useState<VipDuration | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [bookingMethod, setBookingMethod] = useState<'advance' | 'branch' | null>(null);
   const [showAllSkills, setShowAllSkills] = useState(false);
   const [isAgreedTerms, setIsAgreedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -176,14 +176,14 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll when booking method is chosen (advance expands down)
+  // Auto-scroll when duration is selected and it's booking flow
   useEffect(() => {
-    if (bookingMethod === 'advance') {
+    if (isBookingFlow && selectedDuration) {
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }, 300);
     }
-  }, [bookingMethod]);
+  }, [isBookingFlow, selectedDuration]);
 
   // Generate calendar month grid (Monday start)
   const calendarDays = useMemo(() => {
@@ -318,8 +318,7 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
   };
 
   const isReady = effectiveDuration !== null &&
-    bookingMethod !== null &&
-    (bookingMethod === 'branch' || (bookingMethod === 'advance' && selectedSlot !== null && selectedSlot !== 'BRANCH_DECIDE'));
+    (!isBookingFlow || (isBookingFlow && selectedSlot !== null));
 
   return (
     <motion.div
@@ -477,51 +476,12 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
         )}
       </AnimatePresence>
 
-      {/* Hình Thức Sử Dụng (after duration selected) */}
+      {/* Booking Config Section (after duration selected) */}
       <AnimatePresence>
         {selectedDuration && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-            <section>
-              <h3 className="text-[11px] tracking-[0.2em] uppercase text-[#d0c5b5] flex items-center mb-3">
-                <span className="w-6 h-px bg-[#4d463a] mr-2" />
-                {t.bc_servicePreference}
-              </h3>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    setBookingMethod('branch');
-                    setSelectedSlot('BRANCH_DECIDE');
-                  }}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${
-                    bookingMethod === 'branch'
-                      ? 'bg-[#e6c487]/10 border-[#e6c487] text-[#e6c487] shadow-[0_0_15px_rgba(230,196,135,0.1)]'
-                      : 'bg-[#1b1b1d] border-[#4d463a]/30 text-[#d0c5b5] hover:border-[#998f81]/50'
-                  }`}
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  <span className="text-sm sm:text-base font-medium">{t.bc_walkIn}</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setBookingMethod('advance');
-                    if (selectedSlot === 'BRANCH_DECIDE') setSelectedSlot(null);
-                  }}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${
-                    bookingMethod === 'advance'
-                      ? 'bg-[#e6c487]/10 border-[#e6c487] text-[#e6c487] shadow-[0_0_15px_rgba(230,196,135,0.1)]'
-                      : 'bg-[#1b1b1d] border-[#4d463a]/30 text-[#d0c5b5] hover:border-[#998f81]/50'
-                  }`}
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <span className="text-sm sm:text-base font-medium">{t.bc_bookAdvance}</span>
-                </button>
-              </div>
-            </section>
-
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5 mt-5">
             <AnimatePresence>
-              {bookingMethod === 'advance' && (
+              {isBookingFlow && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -632,7 +592,7 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
             className="fixed bottom-6 inset-x-5 lg:inset-x-0 mx-auto lg:w-[500px] z-40"
           >
             {/* Terms and Policies Checkbox */}
-            {bookingMethod === 'advance' && (
+            {isBookingFlow && (
               <div className="flex items-center gap-2 mb-3 px-2">
                 <button
                   onClick={() => setIsAgreedTerms(!isAgreedTerms)}
@@ -669,10 +629,10 @@ const BookingConfig = ({ lang, selectedStaffIds, selectedStaffInfoList, vipPrici
               </div>
             </div>
             <button
-              disabled={bookingMethod === 'advance' && !isAgreedTerms}
+              disabled={isBookingFlow && !isAgreedTerms}
               onClick={() => onConfirm({ skillsMap: selectedSkillsMap, totalDuration: effectiveDuration, timeSlot: selectedSlot, totalPrice, appointmentDate: selectedDateStr, customerNotes })}
               className={`w-full py-4 rounded-full font-bold tracking-[0.12em] text-sm flex items-center justify-center gap-3 duration-200 uppercase ${
-                (bookingMethod === 'branch' || isAgreedTerms)
+                (!isBookingFlow || isAgreedTerms)
                   ? 'bg-[#e6c487] text-[#412d00] shadow-[0_15px_30px_rgba(0,0,0,0.4)] active:scale-95' 
                   : 'bg-[#4d463a]/50 text-[#998f81] cursor-not-allowed'
               }`}
