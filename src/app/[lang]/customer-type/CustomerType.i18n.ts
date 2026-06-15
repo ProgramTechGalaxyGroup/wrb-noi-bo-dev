@@ -8,7 +8,7 @@
 /**
  * Type định nghĩa các key có thể dịch
  */
-export type TranslationKey = 'wc_title' | 'btn_new_title' | 'btn_new_desc' | 'btn_old_title' | 'btn_back' | 'find_history' | 'desc_enter_email' | 'input_placeholder' | 'search' | 'cancel' | 'error_not_found' | 'error_desc' | 'btn_retry' | 'btn_register_new' | 'btn_logout' | 'or_manual';
+export type TranslationKey = 'wc_title' | 'btn_walkin_title' | 'btn_walkin_desc' | 'btn_booking_title' | 'btn_booking_desc' | 'btn_old_title' | 'btn_back' | 'find_history' | 'desc_enter_email' | 'input_placeholder' | 'search' | 'cancel' | 'error_not_found' | 'error_desc' | 'btn_retry' | 'btn_register_new' | 'btn_logout' | 'or_manual';
 
 /**
  * Object chứa tất cả bản dịch theo ngôn ngữ
@@ -18,8 +18,10 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
   en: {
     wc_title: 'Welcome',
 
-    btn_new_title: 'New Order',
-    btn_new_desc: 'Create a new booking',
+    btn_walkin_title: 'Walk-in',
+    btn_walkin_desc: 'Order at the Spa',
+    btn_booking_title: 'Advance Booking',
+    btn_booking_desc: 'Book for a future date',
     btn_old_title: 'View Order History',
     btn_back: 'Back',
     find_history: 'Find History',
@@ -37,8 +39,10 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
   vi: {
     wc_title: 'Chào mừng',
 
-    btn_new_title: 'Đơn hàng mới',
-    btn_new_desc: 'Tạo dịch vụ mới',
+    btn_walkin_title: 'Đặt Tại Tiệm',
+    btn_walkin_desc: 'Làm dịch vụ ngay bây giờ',
+    btn_booking_title: 'Đặt Lịch Trước',
+    btn_booking_desc: 'Hẹn lịch cho ngày/giờ khác',
     btn_old_title: 'Xem lịch sử đơn hàng',
     btn_back: 'Quay lại',
     find_history: 'Tìm Lịch Sử',
@@ -56,8 +60,10 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
   jp: {
     wc_title: 'ようこそ',
 
-    btn_new_title: '新規注文',
-    btn_new_desc: '新しい予約を作成',
+    btn_walkin_title: 'ご来店注文',
+    btn_walkin_desc: '今すぐサービスを受ける',
+    btn_booking_title: '事前予約',
+    btn_booking_desc: '別の日時で予約する',
     btn_old_title: '注文履歴を見る',
     btn_back: '戻る',
     find_history: '履歴検索',
@@ -75,8 +81,10 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
   kr: {
     wc_title: '환영합니다',
 
-    btn_new_title: '새 주문',
-    btn_new_desc: '새 예약 만들기',
+    btn_walkin_title: '현장 주문',
+    btn_walkin_desc: '지금 바로 서비스 이용',
+    btn_booking_title: '사전 예약',
+    btn_booking_desc: '다른 날짜/시간으로 예약',
     btn_old_title: '주문 내역 보기',
     btn_back: '돌아가기',
     find_history: '기록 찾기',
@@ -94,8 +102,10 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
   cn: {
     wc_title: '欢迎',
 
-    btn_new_title: '新订单',
-    btn_new_desc: '创建新预约',
+    btn_walkin_title: '到店下单',
+    btn_walkin_desc: '立即体验服务',
+    btn_booking_title: '提前预约',
+    btn_booking_desc: '预约其他日期/时间',
     btn_old_title: '查看订单记录',
     btn_back: '返回',
     find_history: '查找记录',

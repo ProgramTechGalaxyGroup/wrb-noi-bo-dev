@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { UserCheck, ArrowRight, X, Loader2, ArrowLeft, History, Search } from "lucide-react";
+import { UserCheck, ArrowRight, X, Loader2, ArrowLeft, History, Search, Calendar } from "lucide-react";
 import { useCustomerTypeLogic } from "./CustomerType.logic";
 import { GoogleLoginBtn } from '@/components/Auth/GoogleLoginBtn';
 
@@ -45,7 +45,8 @@ export default function CustomerTypePage() {
     popupStep,
     isLoading,
     onSelectOldUser,
-    onSelectNewUser,
+    onSelectWalkIn,
+    onSelectAdvance,
     handleCheckUserEmail,
     handleRetry,
     closePopup,
@@ -111,9 +112,9 @@ export default function CustomerTypePage() {
 
         </div>
 
-        {/* --- NÚT KHÁCH HÀNG MỚI --- */}
+        {/* --- NÚT ĐẶT ĐƠN TẠI TIỆM --- */}
         <button
-          onClick={onSelectNewUser}
+          onClick={onSelectWalkIn}
           style={{ height: LAYOUT_CONFIG.buttons.height }}
           className="w-full h-auto py-4 bg-white/10 hover:bg-white/20 border-2 border-[#B38728]/60 rounded-[1.5rem] flex items-center justify-between px-8 transition-all active:scale-[0.98] backdrop-blur-sm"
         >
@@ -122,17 +123,42 @@ export default function CustomerTypePage() {
               className="gold-text-shiny font-bold uppercase tracking-wider"
               style={{ fontSize: LAYOUT_CONFIG.buttons.fontSizeTitle }}
             >
-              {t('btn_new_title')}
+              {t('btn_walkin_title')}
             </span>
             <span
               className="text-gray-400 font-normal tracking-tight italic"
               style={{ fontSize: LAYOUT_CONFIG.buttons.fontSizeDesc }}
             >
-              {t('btn_new_desc')}
+              {t('btn_walkin_desc')}
             </span>
           </div>
           <div className="w-10 h-10 bg-[#B38728]/30 rounded-full flex items-center justify-center backdrop-blur-sm">
             <ArrowRight size={LAYOUT_CONFIG.buttons.iconSize} className="text-[#D4AF37]" />
+          </div>
+        </button>
+
+        {/* --- NÚT ĐẶT LỊCH TRƯỚC --- */}
+        <button
+          onClick={onSelectAdvance}
+          style={{ height: LAYOUT_CONFIG.buttons.height }}
+          className="w-full h-auto py-4 bg-white/10 hover:bg-white/20 border-2 border-[#B38728]/60 rounded-[1.5rem] flex items-center justify-between px-8 transition-all active:scale-[0.98] backdrop-blur-sm"
+        >
+          <div className="flex flex-col items-start text-left">
+            <span
+              className="gold-text-shiny font-bold uppercase tracking-wider"
+              style={{ fontSize: LAYOUT_CONFIG.buttons.fontSizeTitle }}
+            >
+              {t('btn_booking_title')}
+            </span>
+            <span
+              className="text-gray-400 font-normal tracking-tight italic"
+              style={{ fontSize: LAYOUT_CONFIG.buttons.fontSizeDesc }}
+            >
+              {t('btn_booking_desc')}
+            </span>
+          </div>
+          <div className="w-10 h-10 bg-[#B38728]/30 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <Calendar size={LAYOUT_CONFIG.buttons.iconSize} className="text-[#D4AF37]" />
           </div>
         </button>
 
@@ -236,7 +262,7 @@ export default function CustomerTypePage() {
                 <button onClick={handleRetry} className="w-full bg-[#2a2f3e] hover:bg-[#353b4d] text-white font-bold py-3.5 rounded-xl border border-white/5 transition-colors">
                   {t('btn_retry')}
                 </button>
-                <button onClick={onSelectNewUser} className="w-full bg-[#EAB308] hover:bg-[#d9a507] text-black font-bold py-3.5 rounded-xl uppercase tracking-wide shadow-md transition-colors">
+                <button onClick={closePopup} className="w-full bg-[#EAB308] hover:bg-[#d9a507] text-black font-bold py-3.5 rounded-xl uppercase tracking-wide shadow-md transition-colors">
                   {t('btn_register_new')}
                 </button>
               </div>

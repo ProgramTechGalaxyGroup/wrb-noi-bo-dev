@@ -15,10 +15,13 @@ import { checkUserEmail } from "@/services/user";
 import { useAuthStore } from "@/lib/authStore.logic";
 import { useGoogleLogin } from "@/components/Auth/GoogleLoginBtn.logic";
 
+import { useMenuData } from "@/components/Menu/MenuContext";
+
 export const useCustomerTypeLogic = (lang: string) => {
   const router = useRouter();
   const { user } = useAuthStore();
   const { handleLogout } = useGoogleLogin(lang);
+  const { clearCart } = useMenuData();
 
   // --- 1. CÁC STATE QUẢN LÝ ---
   const [isExiting, setIsExiting] = useState(false); // Animation chuyển trang
@@ -37,13 +40,25 @@ export const useCustomerTypeLogic = (lang: string) => {
     return key;
   };
 
-  // --- 3. LOGIC XỬ LÝ KHÁCH HÀNG MỚI ---
-  const onSelectNewUser = () => {
+  // --- 3. LOGIC XỬ LÝ ĐẶT ĐƠN TẠI TIỆM (Walk-in) ---
+  const onSelectWalkIn = () => {
     setShowPopup(false);
+    clearCart();
     setIsExiting(true);
 
     setTimeout(() => {
       router.push(`/${lang}/new-user/select-menu`);
+    }, 500);
+  };
+
+  // --- 4. LOGIC XỬ LÝ ĐẶT LỊCH (Advance Booking) ---
+  const onSelectAdvance = () => {
+    setShowPopup(false);
+    clearCart();
+    setIsExiting(true);
+
+    setTimeout(() => {
+      router.push(`/${lang}/new-user/booking/select-menu`);
     }, 500);
   };
 
