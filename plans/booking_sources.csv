@@ -1,0 +1,9 @@
+Source Key,Nhóm,Mô tả,Nhãn hiển thị (Admin)
+VIP_WALK_IN,Khách đi bộ,Đơn trực tiếp chỉ có dịch vụ VIP,App VIP (Walk-in)
+STANDARD_WALK_IN,Khách đi bộ,Đơn trực tiếp chỉ có dịch vụ Thường,Tại quầy
+MIXED_WALK_IN,Khách đi bộ,Đơn trực tiếp có cả VIP và Thường,Hỗn hợp (Tại quầy)
+VIP_BOOKING,Đặt lịch trước,Đơn đặt lịch hẹn chỉ chứa dịch vụ VIP,App VIP
+STANDARD_BOOKING,Đặt lịch trước,Đơn đặt lịch hẹn chỉ chứa dịch vụ Thường,App Standard
+MIXED_BOOKING,Đặt lịch trước,Đơn đặt lịch hẹn có cả VIP và Thường,Web đặt (Hỗn hợp)
+WEB_BOOKING,Khác,Đơn đặt lịch từ Website công khai của khách hàng,Web Booking
+HOME_BOOKING,Khác,Dịch vụ gọi nhân viên đến tận nhà,Đặt tại nhà

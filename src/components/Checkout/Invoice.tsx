@@ -99,7 +99,7 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                                                     <div className="w-5 flex justify-center"><User size={16} className="text-[#e6c487]" /></div>
                                                     <span className="font-medium text-gray-400">KTV</span>
                                                 </div>
-                                                <span className="font-bold text-[#e6c487]">{item.vipStaffName || item.vipStaffId}</span>
+                                                <span className="font-bold text-[#e6c487]">{item.vipStaffId}</span>
                                             </div>
                                             {/* Duration */}
                                             <div className="flex justify-between items-center">

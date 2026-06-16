@@ -317,8 +317,7 @@ const BookingConfig = ({ lang, isBookingFlow, selectedStaffIds, selectedStaffInf
     setSelectedDuration(null);
   };
 
-  const isReady = effectiveDuration !== null &&
-    (!isBookingFlow || (isBookingFlow && selectedSlot !== null));
+  const isReady = effectiveDuration !== null;
 
   return (
     <motion.div
@@ -480,89 +479,6 @@ const BookingConfig = ({ lang, isBookingFlow, selectedStaffIds, selectedStaffInf
       <AnimatePresence>
         {selectedDuration && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5 mt-5">
-            <AnimatePresence>
-              {isBookingFlow && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-5 overflow-hidden"
-                >
-                  {/* Day chips */}
-                  <section>
-                    <h3 className="text-[11px] tracking-[0.2em] uppercase text-[#d0c5b5] flex items-center mb-3">
-                      <span className="w-6 h-px bg-[#4d463a] mr-2" />
-                      {t.bc_selectDate}
-                    </h3>
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide items-center">
-                      {dayChips.map((day: any, idx: number) => {
-                        const isSelected = selectedDateStr === day.isoDate;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => { setSelectedDateStr(day.isoDate); setSelectedSlot(null); }}
-                            className={`flex flex-col items-center justify-center min-w-[52px] h-16 rounded-2xl transition-all duration-200 ${
-                              isSelected
-                                ? 'bg-[#c9a96e]/20 border border-[#e6c487]/30 text-[#e6c487]'
-                                : 'bg-[#1b1b1d] text-[#d0c5b5] border border-transparent'
-                            }`}
-                          >
-                            <span className="text-[9px] uppercase tracking-tighter opacity-70">{day.label}</span>
-                            <span className="text-lg font-bold mt-0.5">{day.date}</span>
-                          </button>
-                        );
-                      })}
-
-                      {/* Custom Calendar Button */}
-                      {(() => {
-                        const isCustomDate = !dayChips.some(d => d.isoDate === selectedDateStr);
-                        let displayLabel = t.bc_moreDate;
-                        if (isCustomDate && selectedDateStr) {
-                          const [_, m, d] = selectedDateStr.split('-');
-                          displayLabel = `${d}/${m}`;
-                        }
-                        return (
-                          <button
-                            onClick={() => setShowCalendar(true)}
-                            className={`flex flex-col items-center justify-center min-w-[70px] h-16 rounded-2xl transition-all duration-200 border ${
-                              isCustomDate
-                                ? 'bg-[#c9a96e]/20 border-[#e6c487] text-[#e6c487]'
-                                : 'bg-[#1b1b1d] border-dashed border-[#4d463a]/50 text-[#998f81]'
-                            }`}
-                          >
-                            <span className="text-[9px] uppercase tracking-tighter opacity-70">{t.bc_calendar}</span>
-                            <span className="text-xs font-bold mt-1.5">{displayLabel}</span>
-                          </button>
-                        );
-                      })()}
-                    </div>
-                  </section>
-
-                  {/* Time Picker — Flip Clock Style */}
-                  <section>
-                    <h3 className="text-[11px] tracking-[0.2em] uppercase text-[#d0c5b5] flex items-center mb-3">
-                      <span className="w-6 h-px bg-[#4d463a] mr-2" />
-                      {t.bc_availableTimes}
-                    </h3>
-                    {pickerTimeRange.hasSlots ? (
-                      <FlipTimePicker
-                        startTime={pickerTimeRange.startTime}
-                        endTime={pickerTimeRange.endTime}
-                        value={selectedSlot}
-                        onChange={(time) => setSelectedSlot(time)}
-                      />
-                    ) : (
-                      <p className="text-[#998f81] text-sm text-center py-4">
-                        {t.bc_noTimeSlots}
-                      </p>
-                    )}
-                    <p className="text-[9px] text-[#998f81] text-center mt-2">
-                      {t.bc_timeNote}
-                    </p>
-                  </section>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Customer Notes */}
             <section className="mt-5 p-4 rounded-2xl bg-[#1b1b1d] border border-[#4d463a]/30">
@@ -591,33 +507,6 @@ const BookingConfig = ({ lang, isBookingFlow, selectedStaffIds, selectedStaffInf
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="fixed bottom-6 inset-x-5 lg:inset-x-0 mx-auto lg:w-[500px] z-40"
           >
-            {/* Terms and Policies Checkbox */}
-            {isBookingFlow && (
-              <div className="flex items-center gap-2 mb-3 px-2">
-                <button
-                  onClick={() => setIsAgreedTerms(!isAgreedTerms)}
-                  className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border transition-all ${
-                    isAgreedTerms
-                      ? 'bg-green-500 border-green-500'
-                      : 'bg-[#1b1b1d] border-[#4d463a] hover:border-[#e6c487]'
-                  }`}
-                >
-                  {isAgreedTerms && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  )}
-                </button>
-                <div className="text-[11px] text-[#998f81]">
-                  {t.bc_terms_agree || 'Tôi đã đọc và đồng ý với '}{' '}
-                  <button 
-                    onClick={() => setShowTermsModal(true)}
-                    className="text-[#e6c487] underline underline-offset-2 decoration-[#e6c487]/30 hover:decoration-[#e6c487]"
-                  >
-                    <i>{t.bc_terms_title || 'Điều khoản & Chính sách'}</i>
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className="flex justify-between items-end mb-2 px-1">
               <div>
                 <div className="text-[10px] text-[#998f81] uppercase tracking-wider">{t.bc_selected}</div>
@@ -629,13 +518,8 @@ const BookingConfig = ({ lang, isBookingFlow, selectedStaffIds, selectedStaffInf
               </div>
             </div>
             <button
-              disabled={isBookingFlow && !isAgreedTerms}
-              onClick={() => onConfirm({ skillsMap: selectedSkillsMap, totalDuration: effectiveDuration, timeSlot: selectedSlot, totalPrice, appointmentDate: selectedDateStr, customerNotes })}
-              className={`w-full py-4 rounded-full font-bold tracking-[0.12em] text-sm flex items-center justify-center gap-3 duration-200 uppercase ${
-                (!isBookingFlow || isAgreedTerms)
-                  ? 'bg-[#e6c487] text-[#412d00] shadow-[0_15px_30px_rgba(0,0,0,0.4)] active:scale-95' 
-                  : 'bg-[#4d463a]/50 text-[#998f81] cursor-not-allowed'
-              }`}
+              onClick={() => onConfirm({ skillsMap: selectedSkillsMap, totalDuration: effectiveDuration, timeSlot: null, totalPrice, appointmentDate: null, customerNotes })}
+              className="w-full py-4 rounded-full font-bold tracking-[0.12em] text-sm flex items-center justify-center gap-3 duration-200 uppercase bg-[#e6c487] text-[#412d00] shadow-[0_15px_30px_rgba(0,0,0,0.4)] active:scale-95"
             >
               <span>{t.bc_confirmSelection}</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>

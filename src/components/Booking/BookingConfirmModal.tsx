@@ -184,7 +184,7 @@ export default function BookingConfirmModal({
                                                         <div className="flex gap-2 items-center text-gray-400">
                                                             <User size={14} /> <span>KTV</span>
                                                         </div>
-                                                        <span className="font-bold text-[#C9A96E]">{item.vipStaffName || item.vipStaffId}</span>
+                                                        <span className="font-bold text-[#C9A96E]">{item.vipStaffId}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex gap-2 items-center text-gray-400">

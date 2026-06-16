@@ -156,40 +156,28 @@ const PremiumMenu = ({ lang, isBookingFlow, onBack, onCheckout, onSwitchToStanda
                   vipPricingTable={vipPricingTable}
                   bufferMinutes={bufferMinutes}
                   onConfirm={(data) => {
-                    // Check if walk-in → add to cart → checkout
-                    if (!isBookingFlow) {
-                      // Build display name from skills
-                      const allSkillIds = Object.values(data.skillsMap).flat();
-                      const skillNames = allSkillIds.map((id: string) => {
-                        const skill = SKILL_MAP[id];
-                        return skill ? getSkillName(skill, lang as VipLang) : id;
-                      });
-                      const uniqueNames = [...new Set(skillNames)];
-                      const displayName = uniqueNames.length > 0 ? uniqueNames.join(' + ') : 'VIP Bespoke';
+                    // Build display name from skills
+                    const allSkillIds = Object.values(data.skillsMap).flat();
+                    const skillNames = allSkillIds.map((id: string) => {
+                      const skill = SKILL_MAP[id];
+                      return skill ? getSkillName(skill, lang as VipLang) : id;
+                    });
+                    const uniqueNames = [...new Set(skillNames)];
+                    const displayName = uniqueNames.length > 0 ? uniqueNames.join(' + ') : 'VIP Bespoke';
 
-                      // Add to shared cart
-                      addVipToCart({
-                        staffIds: selectedStaffIds,
-                        staffInfoList: selectedStaffInfoList,
-                        skillIds: allSkillIds,
-                        displayName,
-                        duration: data.totalDuration,
-                        totalPrice: data.totalPrice || 0,
-                        customerNotes: data.customerNotes,
-                      });
+                    // Add to shared cart
+                    addVipToCart({
+                      staffIds: selectedStaffIds,
+                      staffInfoList: selectedStaffInfoList,
+                      skillIds: allSkillIds,
+                      displayName,
+                      duration: data.totalDuration,
+                      totalPrice: data.totalPrice || 0,
+                      customerNotes: data.customerNotes,
+                    });
 
-                      // Navigate to shared checkout page
-                      onCheckout();
-                    } else {
-                      // Advance booking → go to ConfirmationScreen (future feature)
-                      setSelectedSkillsMap(data.skillsMap);
-                      setTotalDuration(data.totalDuration);
-                      setTimeSlot(data.timeSlot);
-                      setTotalPrice(data.totalPrice || 0);
-                      setAppointmentDate(data.appointmentDate);
-                      setCustomerNotes(data.customerNotes || '');
-                      setStep('CONFIRMATION');
-                    }
+                    // Navigate to shared checkout page
+                    onCheckout();
                   }}
                 />
               </motion.div>
