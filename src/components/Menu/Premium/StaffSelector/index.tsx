@@ -294,13 +294,23 @@ const StaffSelector = ({ lang, preferredCategoryId, onConfirmSelection }: StaffS
 
                     {/* Action Buttons */}
                     <div className="flex gap-3">
-                      <div className={`flex-1 py-4 rounded-full text-center text-sm font-bold tracking-[0.1em] uppercase transition-all shadow-[0_4px_15px_rgba(0,0,0,0.3)] ${
-                        !unavailable
-                          ? 'bg-[#e6c487] text-[#412d00]'
-                          : 'bg-black/60 backdrop-blur-sm border border-[#4d463a] text-[#e4e2e4]'
-                      }`}>
+                      <button
+                        type="button"
+                        disabled={unavailable}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Ngăn sự kiện click lan ra viền thẻ
+                          if (!unavailable) {
+                            onConfirmSelection([staff.id], [staff]); // Chuyển thẳng sang trang tiếp theo
+                          }
+                        }}
+                        className={`w-full py-4 rounded-full text-center text-sm font-bold tracking-[0.1em] uppercase transition-all shadow-[0_4px_15px_rgba(0,0,0,0.3)] ${
+                          !unavailable
+                            ? 'bg-[#e6c487] text-[#412d00] hover:bg-[#cba86a] active:scale-95'
+                            : 'bg-black/60 backdrop-blur-sm border border-[#4d463a] text-[#e4e2e4] cursor-not-allowed'
+                        }`}
+                      >
                         {!unavailable ? t.ss_bookNow : t.ss_unavailable}
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>

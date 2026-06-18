@@ -41,6 +41,9 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
+  // Skip non-HTTP requests (like chrome-extension://)
+  if (!event.request.url.startsWith('http')) return;
+
   // Skip API calls and Supabase requests - always go to network
   const url = new URL(event.request.url);
   if (
@@ -56,7 +59,10 @@ self.addEventListener('fetch', (event) => {
         // Clone response and cache it
         const responseClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
+          // Chỉ cache các request hợp lệ (http/https), bỏ qua chrome-extension://
+          if (event.request.url.startsWith('http')) {
+            cache.put(event.request, responseClone);
+          }
         });
         return response;
       })

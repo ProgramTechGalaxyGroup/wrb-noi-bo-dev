@@ -1,0 +1,42 @@
+Key,EN,VI,KR,JP,CN
+step_info_title,Customer Info,Thông Tin Khách,고객 정보,お客様情報,客户信息
+step_info_desc,Please enter your information,Vui lòng nhập thông tin của bạn,정보를 입력해주세요,情報を入力してください,请输入您的信息
+step_time_title,Date & Time,Ngày & Giờ,날짜 및 시간,日時,日期和时间
+step_time_desc,Select your preferred appointment,Chọn thời gian đặt hẹn,원하시는 시간을 선택해주세요,ご希望の時間を選択してください,请选择您的预约时间
+bc_selectDate,Select Date,Chọn Ngày,날짜 선택,日付を選択,选择日期
+bc_availableTimes,Available Times,Thời Gian,예약 가능 시간,予約可能な時間,可用时间
+bc_moreDate,More,Khác,더 보기,さらに,更多
+bc_calendar,Calendar,Lịch,달력,カレンダー,日历
+bc_noTimeSlots,No time slots available today,Đã hết giờ trống trong ngày,오늘 예약 가능한 시간이 없습니다,今日の予約可能な時間はありません,今天没有可用的时间
+bc_timeNote,Please scroll to choose a valid time,Vui lòng vuốt để chọn giờ hợp lệ,유효한 시간을 선택하기 위해 스와이프하세요,有効な時間を選択するためにスワイプしてください,请滑动以选择有效时间
+bc_month,Month ,Tháng ,월 ,月 ,月 
+bc_close,Close,Đóng,닫기,閉じる,关闭
+bc_sun,Sun,CN,일,日,日
+bc_mon,Mon,T2,월,月,一
+bc_tue,Tue,T3,화,火,二
+bc_wed,Wed,T4,수,水,三
+bc_thu,Thu,T5,목,木,四
+bc_fri,Fri,T6,금,金,五
+bc_sat,Sat,T7,토,土,六
+cal_t2,Mon,T2,월,月,一
+cal_t3,Tue,T3,화,火,二
+cal_t4,Wed,T4,수,水,三
+cal_t5,Thu,T5,목,木,四
+cal_t6,Fri,T6,금,金,五
+cal_t7,Sat,T7,토,土,六
+cal_cn,Sun,CN,일,日,日
+step_invoice_title,Invoice Summary,Tổng Hợp Đơn,주문 요약,注文の概要,订单摘要
+step_invoice_desc,Review your selected services,Kiểm tra lại dịch vụ đã chọn,선택하신 서비스를 확인해주세요,選択したサービスを確認してください,请检查您选择的服务
+invoice_time,Appointment:,Lịch hẹn:,예약 시간:,予約時間:,预约时间:
+step_payment_title,Payment Method,Thanh Toán,결제 수단,お支払い方法,付款方式
+step_payment_desc,Choose how you want to pay,Chọn phương thức thanh toán,결제 수단을 선택해주세요,お支払い方法を選択してください,请选择您的付款方式
+booking_reminder,"Please note: Advance booking helps us guarantee your spot and prepare the best service for you.","Lưu ý: Quý khách vui lòng đặt lịch trước để đảm bảo có KTV phục vụ đúng hẹn.","안내: 예약시간에 맞추어 관리사가 배정될 수 있도록 사전 예약을 부탁드립니다.","ご案内: セラピストを時間通りに手配できるよう、事前予約をお願いいたします。","提示：请提前预约，以确保技师按时为您服务。"
+step_terms_title,Terms & Conditions,Điều Khoản & Chính Sách,이용 약관,利用規約,条款和条件
+step_terms_desc,Review our policies,Vui lòng đọc kỹ các chính sách,정책을 확인해주세요,ポリシーを確認してください,请检查我们的政策
+terms_agree,I agree to the ,Tôi đã đọc và đồng ý với ,"본인은 다음 내용에 동의합니다: ","以下の内容に同意します: ",我同意
+terms_link,Terms and Policies,Điều khoản & Chính sách,이용 약관 및 정책,利用規約とポリシー,条款和政策
+btn_confirm,Confirm Booking,Xác Nhận Đặt Lịch,예약 확인,予約を確認する,确认预约
+btn_back,Back,Quay Lại,뒤로가기,戻る,返回
+btn_next,Next,Tiếp Tục,다음,次へ,下一步
+error_incomplete,Please complete all required fields.,Vui lòng điền đủ thông tin bắt buộc.,필수 항목을 모두 작성해주세요.,必須項目をすべて記入してください。,请填写所有必填字段。
+error_agree_terms,Please agree to the Terms & Conditions.,Vui lòng đồng ý với Điều Khoản & Chính Sách.,이용 약관 및 정책에 동의해주세요.,利用規約とポリシーに同意してください。,请同意条款和政策。
