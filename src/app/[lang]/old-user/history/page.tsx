@@ -192,10 +192,9 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
             return;
         }
         restoreCart(order);
-        // Redirect to Menu to edit
-        // Default to 'standard' for now as we haven't saved menuType in DB yet
+        // Redirect to Select Menu so they can choose VIP or Standard
         setTimeout(() => {
-            router.push(`/${lang}/old-user/standard/menu`);
+            router.push(`/${lang}/old-user/select-menu`);
         }, 100);
     };
 

@@ -25,7 +25,7 @@ export default function OldUserMenuPage() {
         return <StandardMenu lang={lang} onBack={handleBack} onCheckout={handleCheckout} />;
     }
 
-    if (menuType === 'premium') {
+    if (menuType === 'vip' || menuType === 'premium') {
         return <PremiumMenu lang={lang} onBack={handleBack} onCheckout={handleCheckout} />;
     }
 
