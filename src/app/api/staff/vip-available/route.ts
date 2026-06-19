@@ -53,7 +53,7 @@ export async function GET(_req: NextRequest) {
     // ─── Step 1: Fetch all active staff ─────────────────────────────────────
     const { data: staffList, error: staffError } = await supabase
       .from('Staff')
-      .select('id, full_name, avatar_url, gender, skills, height')
+      .select('id, full_name, avatar_url, gender, skills, height, feature_flags')
       .eq('status', 'ĐANG LÀM')
       .eq('is_active_vip_menu', true) // Chỉ lấy nhân viên cho VIP Menu
       .order('full_name');
@@ -155,12 +155,18 @@ export async function GET(_req: NextRequest) {
       // --- Availability logic ---
       // Priority: TurnQueue (check-in thật) > LeaveRequests > NOT_YET
       // Nếu KTV đã check-in (có TurnQueue) → trạng thái thực tế thắng đơn OFF
-      let availability: StaffAvailability;
+      let availability: StaffAvailability = 'NOT_YET';
       let estimatedEndTime: string | null = null;
       let currentOrderId: string | null = null;
+      let queuePosition: number = 999;
+      let turnsCompleted: number = 0;
+      let travelTimeMins: number | undefined;
 
-      let queuePosition = 999;
-      let turnsCompleted = 0;
+      // Check Feature Flags for On-Call
+      const featureFlags = s.feature_flags as Record<string, any> | null;
+      const isAllowedOnCall = featureFlags?.allow_on_call === true;
+      const isOnCallEnabled = featureFlags?.is_on_call === true;
+      const isStaffOnCall = isAllowedOnCall && isOnCallEnabled;
 
       if (tq) {
         // Đã check-in → TurnQueue wins (kể cả có LeaveRequest)
@@ -171,18 +177,30 @@ export async function GET(_req: NextRequest) {
           estimatedEndTime = formatTimeVn(tq.estimated_end_time);
           currentOrderId = tq.current_order_id;
         } else if (tq.status === 'off') {
-          availability = 'OFF_DUTY';
+          availability = isStaffOnCall ? 'ON_CALL' : 'OFF_DUTY';
+          if (availability === 'ON_CALL') {
+            travelTimeMins = featureFlags?.travel_time_mins || 30; // Default 30 mins
+          }
         } else {
-          availability = 'NOT_YET';
+          availability = isStaffOnCall ? 'ON_CALL' : 'NOT_YET';
+          if (availability === 'ON_CALL') {
+            travelTimeMins = featureFlags?.travel_time_mins || 30;
+          }
         }
         queuePosition = tq.queue_position ?? 999;
         turnsCompleted = tq.turns_completed ?? 0;
       } else if (isOnLeave) {
-        // Chưa check-in + có đơn OFF → ON_LEAVE
-        availability = 'ON_LEAVE';
+        // Chưa check-in + có đơn OFF → ON_LEAVE (trừ khi chủ động bật ON_CALL)
+        availability = isStaffOnCall ? 'ON_CALL' : 'ON_LEAVE';
+        if (availability === 'ON_CALL') {
+          travelTimeMins = featureFlags?.travel_time_mins || 30;
+        }
       } else {
         // Chưa check-in + không có đơn OFF → chưa vô ca
-        availability = 'NOT_YET';
+        availability = isStaffOnCall ? 'ON_CALL' : 'NOT_YET';
+        if (availability === 'ON_CALL') {
+          travelTimeMins = featureFlags?.travel_time_mins || 30;
+        }
       }
 
       return {
@@ -200,16 +218,17 @@ export async function GET(_req: NextRequest) {
         shiftEnd,
         queuePosition,
         turnsCompleted,
+        travelTimeMins,
       };
     });
 
-    // ─── Step 6: Sort — AVAILABLE first & queuePosition ───────────────────
     const SORT_ORDER: Record<StaffAvailability, number> = {
       AVAILABLE: 0,
-      BUSY: 1,
-      NOT_YET: 2,
-      OFF_DUTY: 3,
-      ON_LEAVE: 4,
+      ON_CALL: 1,
+      BUSY: 2,
+      NOT_YET: 3,
+      OFF_DUTY: 4,
+      ON_LEAVE: 5,
     };
 
     result.sort((a, b) => {

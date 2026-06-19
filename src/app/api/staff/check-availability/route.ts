@@ -31,7 +31,7 @@ const SHIFT_MAP: Record<string, { start: string; end: string }> = {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type StaffStatus = 'AVAILABLE' | 'BUSY' | 'OFF' | 'OFF_DUTY' | 'NOT_YET' | 'UNKNOWN';
+type StaffStatus = 'AVAILABLE' | 'BUSY' | 'OFF' | 'OFF_DUTY' | 'NOT_YET' | 'UNKNOWN' | 'ON_CALL';
 type BookingConfidence = 'CONFIRMED' | 'NEEDS_CONFIRM' | 'RISKY';
 
 interface StaffAvailabilityResult {
@@ -42,6 +42,7 @@ interface StaffAvailabilityResult {
   shiftType?: string;
   shiftStart?: string;       // "HH:mm"
   shiftEnd?: string;         // "HH:mm"
+  travelTimeMins?: number;
   confidence: BookingConfidence;
 }
 
@@ -178,6 +179,20 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // ─── Step 3.5: Fetch Staff Feature Flags for ON_CALL ────────────────
+    const staffFeaturesMap = new Map<string, any>();
+    const { data: staffList, error: staffError } = await supabase
+      .from('Staff')
+      .select('id, feature_flags')
+      .in('id', staffIds);
+
+    if (staffError) {
+      console.error('[check-availability] Staff query error:', staffError);
+    }
+    for (const s of staffList ?? []) {
+      staffFeaturesMap.set(s.id, s.feature_flags);
+    }
+
     // ─── Step 4: Build per-staff availability results ────────────────────
     const results: StaffAvailabilityResult[] = [];
 
@@ -216,15 +231,27 @@ export async function GET(req: NextRequest) {
             break;
 
           case 'off':
-            status = 'OFF_DUTY';
-            confidence = 'NEEDS_CONFIRM';
-            reason = 'Đã kết thúc ca làm việc';
+            if (staffFeaturesMap.get(staffId)?.allow_on_call && staffFeaturesMap.get(staffId)?.is_on_call) {
+              status = 'ON_CALL';
+              confidence = 'CONFIRMED';
+              reason = 'Sẵn sàng nhận khách (Ngoài giờ)';
+            } else {
+              status = 'OFF_DUTY';
+              confidence = 'NEEDS_CONFIRM';
+              reason = 'Đã kết thúc ca làm việc';
+            }
             break;
 
           default:
-            status = 'NOT_YET';
-            confidence = 'NEEDS_CONFIRM';
-            reason = 'Trạng thái không xác định';
+            if (staffFeaturesMap.get(staffId)?.allow_on_call && staffFeaturesMap.get(staffId)?.is_on_call) {
+              status = 'ON_CALL';
+              confidence = 'CONFIRMED';
+              reason = 'Sẵn sàng nhận khách (Ngoài giờ)';
+            } else {
+              status = 'NOT_YET';
+              confidence = 'NEEDS_CONFIRM';
+              reason = 'Trạng thái không xác định';
+            }
         }
 
         // If TurnQueue says available but there's a leave request → add warning only
@@ -234,19 +261,31 @@ export async function GET(req: NextRequest) {
           );
         }
       } else if (leaveStatus) {
-        // No TurnQueue record but has leave request → OFF with RISKY confidence
-        status = 'OFF';
-        confidence = 'RISKY';
-        reason = leaveStatus === 'APPROVED'
-          ? `Đã được duyệt nghỉ ngày ${dateParam}`
-          : `Đang chờ duyệt nghỉ ngày ${dateParam}`;
-        warnings.push(`⚠️ KTV ${staffId} ${reason}. Cần xác nhận lại.`);
+        // No TurnQueue record but has leave request
+        if (staffFeaturesMap.get(staffId)?.allow_on_call && staffFeaturesMap.get(staffId)?.is_on_call) {
+          status = 'ON_CALL';
+          confidence = 'CONFIRMED';
+          reason = 'Sẵn sàng nhận khách (Ngoài giờ, dù đang trong Ngày Nghỉ)';
+        } else {
+          status = 'OFF';
+          confidence = 'RISKY';
+          reason = leaveStatus === 'APPROVED'
+            ? `Đã được duyệt nghỉ ngày ${dateParam}`
+            : `Đang chờ duyệt nghỉ ngày ${dateParam}`;
+          warnings.push(`⚠️ KTV ${staffId} ${reason}. Cần xác nhận lại.`);
+        }
       } else if (checkingToday && !tq) {
         // Today, no TurnQueue, no leave → not checked in yet
-        status = 'NOT_YET';
-        confidence = 'NEEDS_CONFIRM';
-        reason = 'Chưa điểm danh hôm nay';
-        warnings.push(`ℹ️ KTV ${staffId} chưa điểm danh.`);
+        if (staffFeaturesMap.get(staffId)?.allow_on_call && staffFeaturesMap.get(staffId)?.is_on_call) {
+          status = 'ON_CALL';
+          confidence = 'CONFIRMED';
+          reason = 'Sẵn sàng nhận khách (Ngoài giờ)';
+        } else {
+          status = 'NOT_YET';
+          confidence = 'NEEDS_CONFIRM';
+          reason = 'Chưa điểm danh hôm nay';
+          warnings.push(`ℹ️ KTV ${staffId} chưa điểm danh.`);
+        }
       } else if (checkingFuture) {
         // Future date → no TurnQueue data available
         status = 'UNKNOWN';
@@ -263,6 +302,7 @@ export async function GET(req: NextRequest) {
 
       if (reason) result.reason = reason;
       if (availableAfter) result.availableAfter = availableAfter;
+      if (status === 'ON_CALL') result.travelTimeMins = staffFeaturesMap.get(staffId)?.travel_time_mins || 30;
       if (shift) {
         result.shiftType = shift.shiftType;
         if (shift.shiftStart) result.shiftStart = shift.shiftStart;
