@@ -251,17 +251,21 @@ export async function GET(request: Request) {
             items: b.BookingItems.map((i: any) => {
                 const sId = String(i.serviceId || '').trim().toLowerCase();
                 const svc = svcMap.get(sId);
+                
+                const finalName = i.options?.displayName || svc?.nameVN || svc?.nameEN || `Dịch vụ ${i.serviceId}`;
+                const finalDuration = i.options?.vipDuration || svc?.duration || null;
+
                 return {
                     id: i.serviceId,
-                    name: svc?.nameVN || svc?.nameEN || `Dịch vụ ${i.serviceId}`,
+                    name: finalName,
                     names: {
-                        vi: svc?.nameVN || '',
-                        en: svc?.nameEN || '',
-                        cn: svc?.nameCN || '',
-                        kr: svc?.nameKR || '',
-                        jp: svc?.nameJP || '',
+                        vi: i.options?.displayName || svc?.nameVN || '',
+                        en: i.options?.displayName || svc?.nameEN || '',
+                        cn: i.options?.displayName || svc?.nameCN || '',
+                        kr: i.options?.displayName || svc?.nameKR || '',
+                        jp: i.options?.displayName || svc?.nameJP || '',
                     },
-                    duration: svc?.duration || null,
+                    duration: finalDuration,
                     qty: i.quantity,
                     price: i.price,
                     options: i.options
