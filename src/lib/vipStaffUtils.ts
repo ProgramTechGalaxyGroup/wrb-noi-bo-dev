@@ -125,7 +125,8 @@ export type StaffAvailability =
   | 'BUSY'          // TurnQueue status='working'/'assigned'
   | 'NOT_YET'       // No TurnQueue record (chưa vô ca / chưa check-in)
   | 'OFF_DUTY'      // TurnQueue status='off' (đã tan ca)
-  | 'ON_LEAVE';     // Has KTVLeaveRequests record
+  | 'ON_LEAVE'      // Has KTVLeaveRequests record
+  | 'ON_CALL';      // KTV is NOT_YET or OFF_DUTY but feature_flags->is_on_call is true
 
 // --- Shift type definitions ---
 export type ShiftType = 'SHIFT_1' | 'SHIFT_2' | 'SHIFT_3' | 'FREE' | 'REQUEST';
@@ -152,4 +153,5 @@ export interface VipStaffInfo {
   shiftEnd: string | null;    // HH:mm — shift end time
   queuePosition?: number;     // KTV position in the turn queue (số tua)
   turnsCompleted?: number;    // Number of completed turns today (số tua đã làm)
+  travelTimeMins?: number;    // Only available when availability === 'ON_CALL'
 }
