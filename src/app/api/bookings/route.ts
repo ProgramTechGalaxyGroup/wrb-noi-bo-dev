@@ -136,7 +136,7 @@ export async function POST(request: Request) {
                 paymentMethod: paymentMethod,
                 createdAt: vnTimeStr,
                 updatedAt: vnTimeStr,
-                bookingDate: vnTimeStr, // or could be appointmentDate if we want to query by date easily
+                bookingDate: appointmentDate ? `${appointmentDate}T00:00:00.000Z` : vnTimeStr,
                 timeBooking: timeSlot,
                 status: 'NEW', // Keep NEW so reception can confirm it
                 billCode: billNum,

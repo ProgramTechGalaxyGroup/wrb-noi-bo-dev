@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
         id: bookingId,
         billCode,
         branchName: 'Ngan Ha Spa',
-        bookingDate: vnTimeStr,
+        bookingDate: appointmentDate ? `${appointmentDate}T00:00:00.000Z` : vnTimeStr,
         timeBooking: timeSlot && timeSlot !== 'BRANCH_DECIDE' ? timeSlot : null,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
