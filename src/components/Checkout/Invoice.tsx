@@ -65,14 +65,20 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                             return 'text-[#C9A96E]';
                         };
 
-                        const isVipItem = item.itemType === 'vip';
+                        const isVipItem = item.itemType === 'vip' || !!item.options?.vipDuration || !!item.options?.displayName;
+
+                        // Fallbacks for restored items from history
+                        const vipDisplayName = item.vipDisplayName || item.options?.displayName || 'VIP Bespoke';
+                        const vipDuration = item.vipDuration || item.options?.vipDuration || item.timeValue || 60;
+                        const vipStaffId = item.vipStaffId || item.options?.vipStaffId || 'N/A';
+                        const vipSkillIds = item.vipSkillIds || item.options?.selectedSkills || [];
 
                         return (
                             <div key={item.cartId} className="border border-white/10 rounded-2xl p-4 shadow-sm bg-[#0d0d0d] mb-4">
                                 {/* Row 1: Name + Price */}
                                 <div className="flex justify-between items-start mb-1 gap-2">
                                     <h4 className="text-white font-bold text-lg truncate flex-1 flex items-center gap-2">
-                                        {idx + 1}. {isVipItem ? (item.vipDisplayName || 'VIP Bespoke') : (item.names[lang] || item.names.en)}
+                                        {idx + 1}. {isVipItem ? vipDisplayName : (item.names[lang] || item.names.en)}
                                         {isVipItem && <Crown size={16} className="text-[#e6c487] shrink-0" />}
                                     </h4>
                                     <span className={`font-bold text-lg shrink-0 ${currency === 'USD' ? 'text-emerald-600' : 'text-white'}`}>
@@ -99,7 +105,7 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                                                     <div className="w-5 flex justify-center"><User size={16} className="text-[#e6c487]" /></div>
                                                     <span className="font-medium text-gray-400">KTV</span>
                                                 </div>
-                                                <span className="font-bold text-[#e6c487]">{item.vipStaffId}</span>
+                                                <span className="font-bold text-[#e6c487]">{vipStaffId}</span>
                                             </div>
                                             {/* Duration */}
                                             <div className="flex justify-between items-center">
@@ -108,13 +114,13 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                                                     <span className="font-medium text-gray-400">{dict.checkout?.time || 'Thời gian'}</span>
                                                 </div>
                                                 <span className="font-bold text-[#C9A96E]">
-                                                    {item.vipDuration} {dict.checkout?.mins || 'phút'}
+                                                    {vipDuration} {dict.checkout?.mins || 'phút'}
                                                 </span>
                                             </div>
                                             {/* Skills Chips */}
-                                            {item.vipSkillIds && item.vipSkillIds.length > 0 && (
+                                            {vipSkillIds && vipSkillIds.length > 0 && (
                                                 <div className="flex flex-wrap gap-1.5 mt-1 pt-2 border-t border-white/5">
-                                                    {item.vipSkillIds.map(skillId => {
+                                                    {vipSkillIds.map((skillId: string) => {
                                                         const skill = SKILL_MAP[skillId];
                                                         const name = skill ? getSkillName(skill, vipLang) : skillId;
                                                         const isChinhSkill = skill?.type === 'CHINH';
