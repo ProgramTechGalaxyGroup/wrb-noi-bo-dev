@@ -24,29 +24,34 @@ interface StaffSelectorProps {
 // --- Status badge style config (text from i18n) ---
 const STATUS_STYLES: Record<string, { style: string; textStyle: string; i18nKey: string }> = {
   AVAILABLE: {
-    style: 'bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20',
+    style: 'bg-black/70 backdrop-blur-md border border-emerald-500/40 shadow-lg',
     textStyle: 'text-[10px] tracking-[0.1em] text-emerald-400 font-bold uppercase',
     i18nKey: 'status_available',
   },
   BUSY: {
-    style: 'bg-amber-500/15 backdrop-blur-md border border-amber-400/20',
-    textStyle: 'text-[10px] tracking-[0.1em] text-amber-300 font-bold uppercase',
+    style: 'bg-black/70 backdrop-blur-md border border-amber-500/40 shadow-lg',
+    textStyle: 'text-[10px] tracking-[0.1em] text-amber-400 font-bold uppercase',
     i18nKey: 'status_busy',
   },
   NOT_YET: {
-    style: 'bg-blue-500/15 backdrop-blur-md border border-blue-400/20',
-    textStyle: 'text-[10px] tracking-[0.1em] text-blue-300 font-bold uppercase',
+    style: 'bg-black/70 backdrop-blur-md border border-blue-500/40 shadow-lg',
+    textStyle: 'text-[10px] tracking-[0.1em] text-blue-400 font-bold uppercase',
     i18nKey: 'status_notYet',
   },
   OFF_DUTY: {
-    style: 'bg-zinc-500/20 backdrop-blur-md border border-zinc-400/20',
-    textStyle: 'text-[10px] tracking-[0.1em] text-zinc-400 font-bold uppercase',
+    style: 'bg-black/70 backdrop-blur-md border border-zinc-500/40 shadow-lg',
+    textStyle: 'text-[10px] tracking-[0.1em] text-zinc-300 font-bold uppercase',
     i18nKey: 'status_offDuty',
   },
   ON_LEAVE: {
-    style: 'bg-[#93000a]/20 backdrop-blur-md border border-[#ffb4ab]/20',
+    style: 'bg-black/70 backdrop-blur-md border border-[#ffb4ab]/40 shadow-lg',
     textStyle: 'text-[10px] tracking-[0.1em] text-[#ffb4ab] font-bold uppercase',
     i18nKey: 'status_onLeave',
+  },
+  ON_CALL: {
+    style: 'bg-black/70 backdrop-blur-md border border-purple-500/40 shadow-lg',
+    textStyle: 'text-[10px] tracking-[0.1em] text-purple-400 font-bold uppercase',
+    i18nKey: 'status_onCall',
   },
 };
 
@@ -84,11 +89,11 @@ const StaffSelector = ({ lang, preferredCategoryId, onConfirmSelection }: StaffS
     );
   }, [staffList, searchQuery]);
 
-  // Sort: AVAILABLE → BUSY → NOT_YET → OFF_DUTY → ON_LEAVE
+  // Sort: AVAILABLE → ON_CALL → BUSY → NOT_YET → OFF_DUTY → ON_LEAVE
   // And within the same status, sort by turnsCompleted (số tua đã làm) then queuePosition (sổ tua)
   const sortedStaff = useMemo(() => {
     return [...filteredStaff].sort((a, b) => {
-      const ORDER: Record<string, number> = { AVAILABLE: 0, BUSY: 1, NOT_YET: 2, OFF_DUTY: 3, ON_LEAVE: 4 };
+      const ORDER: Record<string, number> = { AVAILABLE: 0, ON_CALL: 1, BUSY: 2, NOT_YET: 3, OFF_DUTY: 4, ON_LEAVE: 5 };
       const diff = (ORDER[a.availability] ?? 9) - (ORDER[b.availability] ?? 9);
       if (diff !== 0) return diff;
 
@@ -133,6 +138,11 @@ const StaffSelector = ({ lang, preferredCategoryId, onConfirmSelection }: StaffS
     // NOT_YET: show shift start time if known (VD: "VÀO CA LÚC 17:00")
     if (staff.availability === 'NOT_YET' && staff.shiftStart) {
       label = tpl(t.status_startsAt, { time: staff.shiftStart });
+    }
+
+    // ON_CALL: show travel time
+    if (staff.availability === 'ON_CALL' && staff.travelTimeMins) {
+      label = tpl(t.status_onCall, { time: staff.travelTimeMins });
     }
 
     return (
