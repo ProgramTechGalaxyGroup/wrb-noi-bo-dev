@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, RefreshCw, Plus, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getDictionary } from '@/lib/dictionaries';
 import { formatCurrency } from '@/components/Menu/utils';
 import { useMenuData } from '@/components/Menu/MenuContext';
