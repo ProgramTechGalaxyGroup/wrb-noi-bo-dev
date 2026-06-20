@@ -178,6 +178,14 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
                 vipDisplayName: params.displayName,
                 vipDuration: params.duration,
                 vipCustomerNotes: params.customerNotes,
+                // Add to options so it gets saved to Supabase JSONB
+                options: {
+                    displayName: params.displayName,
+                    vipDuration: params.duration,
+                    vipStaffId: staffId,
+                    selectedSkills: params.skillIds,
+                    notes: { content: params.customerNotes || '' }
+                }
             };
         });
         setCart(prev => [...prev, ...newItems]);
