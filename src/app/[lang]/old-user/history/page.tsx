@@ -19,6 +19,39 @@ const HISTORY_CONFIG = {
     ITEM_BORDER: 'border-[#1f2430]',
 };
 
+const POPUP_I18N: Record<string, any> = {
+    vi: {
+        title: "Chọn Hình Thức Rebook",
+        desc: "Bạn đang thực hiện đặt lại đơn này để làm tại tiệm hay đặt trước online?",
+        walkin: "Tại Tiệm",
+        booking: "Booking"
+    },
+    en: {
+        title: "Select Rebook Method",
+        desc: "Are you rebooking this order for a Walk-in or Advance Booking?",
+        walkin: "Walk-in",
+        booking: "Booking"
+    },
+    cn: {
+        title: "选择重新预订方式",
+        desc: "您是作为到店订单还是提前预约来重新预订此订单？",
+        walkin: "到店下单",
+        booking: "预约"
+    },
+    jp: {
+        title: "再予約方法の選択",
+        desc: "この注文をご来店として再予約しますか、それとも事前予約として再予約しますか？",
+        walkin: "ご来店",
+        booking: "予約"
+    },
+    kr: {
+        title: "재예약 방법 선택",
+        desc: "이 주문을 현장 주문으로 재예약하시겠습니까, 아니면 사전 예약으로 하시겠습니까?",
+        walkin: "현장 주문",
+        booking: "예약"
+    }
+};
+
 export default function HistoryPage({ params }: { params: Promise<{ lang: string }> }) {
     const [lang, setLang] = useState<string>('en');
     const [dict, setDict] = useState<any>(null);
@@ -402,21 +435,21 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="relative w-full max-w-sm bg-[#1c1c1e] rounded-3xl p-6 shadow-2xl border border-white/10"
                         >
-                            <h3 className="text-xl font-bold text-white text-center mb-2">Chọn Hình Thức Rebook</h3>
-                            <p className="text-sm text-gray-400 text-center mb-6">Bạn đang thực hiện đặt lại đơn này để làm tại tiệm hay đặt trước online?</p>
+                            <h3 className="text-xl font-bold text-white text-center mb-2">{(POPUP_I18N[lang] || POPUP_I18N['en']).title}</h3>
+                            <p className="text-sm text-gray-400 text-center mb-6">{(POPUP_I18N[lang] || POPUP_I18N['en']).desc}</p>
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <button
                                     onClick={() => handleConfirmRebook('walk-in')}
                                     className="py-3 px-4 bg-[#C9A96E] hover:bg-[#b89a64] text-white font-bold rounded-xl transition-colors text-center"
                                 >
-                                    Tại Tiệm
+                                    {(POPUP_I18N[lang] || POPUP_I18N['en']).walkin}
                                 </button>
                                 <button
                                     onClick={() => handleConfirmRebook('booking')}
                                     className="py-3 px-4 bg-transparent border border-[#C9A96E] text-[#C9A96E] hover:bg-[#C9A96E]/10 font-bold rounded-xl transition-colors text-center"
                                 >
-                                    Booking
+                                    {(POPUP_I18N[lang] || POPUP_I18N['en']).booking}
                                 </button>
                             </div>
                         </motion.div>
