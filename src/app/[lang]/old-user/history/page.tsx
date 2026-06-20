@@ -24,6 +24,8 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [activeTab, setActiveTab] = useState<'all' | 'unrated'>('all');
+    const [rebookOrder, setRebookOrder] = useState<any>(null);
     const router = useRouter();
     const { addToCart, clearCart, services } = useMenuData();
 
@@ -212,14 +214,19 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
     };
 
     const handleRebook = (order: any) => {
-        if (!services || services.length === 0) {
-            console.error("Services not loaded yet");
-            return;
-        }
-        restoreCart(order);
-        // Redirect to Checkout directly
+        setRebookOrder(order);
+    };
+
+    const handleConfirmRebook = (source: 'walk-in' | 'booking') => {
+        if (!services || services.length === 0 || !rebookOrder) return;
+        restoreCart(rebookOrder);
+        setRebookOrder(null);
         setTimeout(() => {
-            router.push(`/${lang}/old-user/standard/checkout`);
+            if (source === 'walk-in') {
+                router.push(`/${lang}/old-user/standard/checkout`);
+            } else {
+                router.push(`/${lang}/new-user/booking/standard/checkout`);
+            }
         }, 100);
     };
 
@@ -262,7 +269,7 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
             </div>
 
             {/* List */}
-            <div className={`flex-1 p-4 space-y-4 overflow-y-auto ${HISTORY_CONFIG.LIST_BOTTOM_PADDING}`}>
+            <main className={`flex-1 p-4 space-y-4 overflow-y-auto ${HISTORY_CONFIG.LIST_BOTTOM_PADDING}`}>
                 {loading ? (
                     <div className="flex flex-col items-center justify-center pt-20 text-gray-500 gap-2">
                         <Loader2 className="animate-spin" size={32} />
@@ -364,7 +371,7 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
                         </div>
                     ))
                 )}
-            </div>
+            </main>
 
             {/* Bottom Button */}
             <div className={`fixed bottom-0 left-0 right-0 p-4 ${HISTORY_CONFIG.BOTTOM_BAR_PADDING} bg-gradient-to-t from-black via-black/90 to-transparent z-20`}>
@@ -376,6 +383,46 @@ export default function HistoryPage({ params }: { params: Promise<{ lang: string
                     {dict.history.create_new_btn}
                 </button>
             </div>
+
+            {/* Rebook Source Modal */}
+            <AnimatePresence>
+                {rebookOrder && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            onClick={() => setRebookOrder(null)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="relative w-full max-w-sm bg-[#1c1c1e] rounded-3xl p-6 shadow-2xl border border-white/10"
+                        >
+                            <h3 className="text-xl font-bold text-white text-center mb-2">Chọn Hình Thức Rebook</h3>
+                            <p className="text-sm text-gray-400 text-center mb-6">Bạn đang thực hiện đặt lại đơn này để làm tại tiệm hay đặt trước online?</p>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => handleConfirmRebook('walk-in')}
+                                    className="py-3 px-4 bg-[#C9A96E] hover:bg-[#b89a64] text-white font-bold rounded-xl transition-colors text-center"
+                                >
+                                    Tại Tiệm
+                                </button>
+                                <button
+                                    onClick={() => handleConfirmRebook('booking')}
+                                    className="py-3 px-4 bg-transparent border border-[#C9A96E] text-[#C9A96E] hover:bg-[#C9A96E]/10 font-bold rounded-xl transition-colors text-center"
+                                >
+                                    Booking
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 }
