@@ -27,7 +27,7 @@ export const getMenuData = async (): Promise<Service[]> => {
             // Helper để xác định menuType
             const getMenuTypeFromId = (id: string): 'standard' | 'vip' | 'unknown' => {
                 if (id.startsWith('NHS')) return 'standard';
-                if (id.startsWith('NHP')) return 'vip';
+                if (id.startsWith('NHP') || id.startsWith('VIP_')) return 'vip';
                 return 'unknown';
             };
 
