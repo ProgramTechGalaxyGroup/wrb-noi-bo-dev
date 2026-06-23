@@ -49,6 +49,13 @@ interface MenuContextType {
         totalPrice: number;
         customerNotes?: string;
     }) => void;
+    updateVipCartItem: (cartId: string, updates: {
+        vipSkillIds?: string[];
+        vipDuration?: number;
+        vipDisplayName?: string;
+        vipCustomerNotes?: string;
+        priceVND?: number;
+    }) => void;
 
     // --- Customer Logic ---
     customerInfo: CustomerInfoContext;
@@ -184,11 +191,50 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
                     vipDuration: params.duration,
                     vipStaffId: staffId,
                     selectedSkills: params.skillIds,
-                    notes: { content: params.customerNotes || '' }
-                }
-            };
+                    notes: { tag0: false, tag1: false, content: params.customerNotes || '' }
+                } as any
+            } as CartItem;
         });
         setCart(prev => [...prev, ...newItems]);
+    };
+
+    // [NEW] Update VIP cart item fields after editing in checkout
+    const updateVipCartItem = (cartId: string, updates: {
+        vipSkillIds?: string[];
+        vipDuration?: number;
+        vipDisplayName?: string;
+        vipCustomerNotes?: string;
+        priceVND?: number;
+    }) => {
+        setCart(prev => prev.map(item => {
+            if (item.cartId !== cartId) return item;
+            const newSkillIds  = updates.vipSkillIds  ?? item.vipSkillIds;
+            const newDuration  = updates.vipDuration  ?? item.vipDuration;
+            const newName      = updates.vipDisplayName ?? item.vipDisplayName;
+            const newNotes     = updates.vipCustomerNotes ?? item.vipCustomerNotes;
+            const newPrice     = updates.priceVND ?? item.priceVND;
+            return {
+                ...item,
+                priceVND: newPrice,
+                timeValue: newDuration ?? item.timeValue,
+                vipSkillIds: newSkillIds,
+                vipDisplayName: newName,
+                vipDuration: newDuration,
+                vipCustomerNotes: newNotes,
+                names: newName ? { en: newName, vi: newName } : item.names,
+                options: {
+                    ...item.options,
+                    displayName: newName,
+                    vipDuration: newDuration,
+                    selectedSkills: newSkillIds,
+                    notes: {
+                        tag0: item.options?.notes?.tag0 ?? false,
+                        tag1: item.options?.notes?.tag1 ?? false,
+                        content: newNotes || '',
+                    },
+                } as typeof item.options,
+            } as CartItem;
+        }));
     };
 
     // --- CUSTOMER FUNCTIONS ---
@@ -210,7 +256,7 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
         <MenuContext.Provider value={{
             services, categories, loading, error, refreshData: fetchData,
             cart, addToCart, updateCartItem, updateCartItemOptions, updateAllCartItemOptions, removeFromCart, clearCart, getQty,
-            addVipToCart,
+            addVipToCart, updateVipCartItem,
             customerInfo, updateCustomerInfo, resetCustomerInfo
         }}>
             {children}

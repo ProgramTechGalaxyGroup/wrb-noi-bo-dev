@@ -11,9 +11,10 @@ interface InvoiceProps {
     dict: any;
     currency?: 'VND' | 'USD';
     onCustomRequest: (item: CartItem) => void;
+    onVipEditRequest?: (item: CartItem) => void;
 }
 
-export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRequest }: InvoiceProps) {
+export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRequest, onVipEditRequest }: InvoiceProps) {
     const total = cart.reduce((sum, item) => sum + ((currency === 'USD' ? item.priceUSD : item.priceVND) * item.qty), 0);
     const vipLang = (lang || 'vi') as VipLang;
 
@@ -65,13 +66,13 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                             return 'text-[#C9A96E]';
                         };
 
-                        const isVipItem = item.itemType === 'vip' || !!item.options?.vipDuration || !!item.options?.displayName;
+                        const isVipItem = item.itemType === 'vip' || !!(item.options as any)?.vipDuration || !!(item.options as any)?.displayName;
 
                         // Fallbacks for restored items from history
-                        const vipDisplayName = item.vipDisplayName || item.options?.displayName || 'VIP Bespoke';
-                        const vipDuration = item.vipDuration || item.options?.vipDuration || item.timeValue || 60;
-                        const vipStaffId = item.vipStaffId || item.options?.vipStaffId || 'N/A';
-                        const vipSkillIds = item.vipSkillIds || item.options?.selectedSkills || [];
+                        const vipDisplayName = item.vipDisplayName || (item.options as any)?.displayName || 'VIP Bespoke';
+                        const vipDuration = item.vipDuration || (item.options as any)?.vipDuration || item.timeValue || 60;
+                        const vipStaffId = item.vipStaffId || (item.options as any)?.vipStaffId || 'N/A';
+                        const vipSkillIds = item.vipSkillIds || (item.options as any)?.selectedSkills || [];
 
                         return (
                             <div key={item.cartId} className="border border-white/10 rounded-2xl p-4 shadow-sm bg-[#0d0d0d] mb-4">
@@ -92,13 +93,24 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                                 {/* Clickable Customization Region */}
                                 <div 
                                     className={`mt-2 p-3 bg-black/30 rounded-xl border border-white/5 space-y-2.5 text-sm mb-1 ${
-                                        isVipItem ? 'cursor-default' : 'cursor-pointer hover:bg-black/40 active:scale-[0.99] transition-all'
+                                        isVipItem
+                                            ? 'cursor-pointer hover:bg-[#e6c487]/5 hover:border-[#e6c487]/20 active:scale-[0.99] transition-all'
+                                            : 'cursor-pointer hover:bg-black/40 active:scale-[0.99] transition-all'
                                     }`}
-                                    onClick={() => !isVipItem && onCustomRequest(item)}
+                                    onClick={() => isVipItem
+                                        ? onVipEditRequest?.(item)
+                                        : onCustomRequest(item)
+                                    }
                                 >
                                     {isVipItem ? (
                                         /* ─── VIP ITEM RENDER ─── */
                                         <>
+                                            {/* VIP Edit Hint */}
+                                            <div className="flex justify-end mb-1">
+                                                <span className="text-[10px] text-[#e6c487]/50 font-medium flex items-center gap-1 tracking-wide">
+                                                    <PencilLine size={10} /> Chạm để chỉnh
+                                                </span>
+                                            </div>
                                             {/* KTV Info */}
                                             <div className="flex justify-between items-center">
                                                 <div className="flex gap-2 items-center">

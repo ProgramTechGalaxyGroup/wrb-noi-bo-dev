@@ -8,7 +8,6 @@ export interface ServiceData {
     NAMES: Record<string, string>; // { EN: "...", VN: "..." }
     FOCUS_POSITION?: Record<BodyPartKey, boolean>; // Map<Part, boolean>
     TAGS?: Array<Record<string, string>>; // List các tag [0: Pregnant, 1: Allergy]
-    SHOW_STRENGTH?: boolean;
     HINT?: Record<string, string>; // Placeholder cho Other Notes
     PRICE_VN?: number;
     PRICE_USD?: number;
@@ -42,4 +41,3 @@ export interface MultiLangText {
     kr: string;
     cn: string;
 }
-

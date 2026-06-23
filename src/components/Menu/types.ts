@@ -42,9 +42,8 @@ export interface Service {
   // Custom For You Data
   FOCUS_POSITION?: Record<string, boolean>; // HEAD, NECK...
   TAGS?: MultiLangString[]; // Array of tags [0: Pregnant, 1: Allergy] (Each tag is MultiLangString)
-  SHOW_STRENGTH?: boolean;
   HINT?: MultiLangString;
-  
+
   // Categorization & Filtering Tags
   comboTags?: string[];
 
@@ -52,9 +51,9 @@ export interface Service {
   SHOW_CUSTOM_FOR_YOU?: boolean;  // Show/hide entire Custom For You modal
   SHOW_NOTES?: boolean;           // Show/hide Notes section in Custom modal
   SHOW_GENDER?: boolean;
-    SHOW_STRENGTH?: boolean;
-    SHOW_FOCUS?: boolean;
-    SHOW_PREFERENCES?: boolean;     // Show/hide Preferences (Strength + Therapist Gender)
+  SHOW_STRENGTH?: boolean;
+  SHOW_FOCUS?: boolean;
+  SHOW_PREFERENCES?: boolean;     // Show/hide Preferences (Strength + Therapist Gender)
 
   // New Logic Flags
   ACTIVE?: boolean;      // Hiển thị hay không
