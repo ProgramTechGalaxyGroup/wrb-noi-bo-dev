@@ -125,21 +125,50 @@ const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps
         ) as VipDuration);
         setNotes(item.vipCustomerNotes || (item.options as any)?.notes?.content || '');
 
-        // Fetch staff + pricing
+        // Fetch staff skills + pricing
         const loadData = async () => {
             setIsLoading(true);
             try {
-                const [staffRes, pricingRes] = await Promise.all([
-                    fetch('/api/staff/vip-available'),
+                const staffId = item.vipStaffId || (item.options as any)?.vipStaffId;
+
+                // Fetch skills & pricing in parallel
+                const [skillsRes, pricingRes] = await Promise.all([
+                    // [PRIMARY] API nhẹ — không cần TurnQueue, luôn trả về skills
+                    staffId ? fetch(`/api/staff/${staffId}/skills`) : Promise.resolve(null),
                     fetch('/api/config/menu-vip'),
                 ]);
 
-                // Staff
-                if (staffRes.ok) {
-                    const staffData = await staffRes.json();
-                    const staffId = item.vipStaffId || (item.options as any)?.vipStaffId;
-                    const found = (staffData.staff as VipStaffInfo[])?.find(s => s.id === staffId);
-                    if (found) setStaffInfo(found);
+                // Skills
+                if (skillsRes && skillsRes.ok) {
+                    const skillsData = await skillsRes.json();
+                    // Build VipStaffInfo minimal shape để getStaffVipSkills() hoạt động
+                    setStaffInfo({
+                        id: skillsData.id,
+                        fullName: skillsData.fullName,
+                        avatarUrl: skillsData.avatarUrl,
+                        skills: skillsData.skills ?? {},
+                        gender: null,
+                        height: null,
+                        availability: 'AVAILABLE',
+                        estimatedEndTime: null,
+                        currentOrderId: null,
+                        shiftType: null,
+                        shiftStart: null,
+                        shiftEnd: null,
+                    });
+                } else if (staffId) {
+                    // [FALLBACK] Thử lại với vip-available endpoint
+                    try {
+                        const fallbackRes = await fetch('/api/staff/vip-available');
+                        if (fallbackRes.ok) {
+                            const fallbackData = await fallbackRes.json();
+                            const found = (fallbackData.staff as VipStaffInfo[])?.find(s => s.id === staffId);
+                            if (found) setStaffInfo(found);
+                        }
+                    } catch {
+                        // Cả 2 API lỗi → dùng selectedSkills cũ (đã pre-fill ở trên)
+                        console.warn('[VipEditModal] Could not load staff skills, using cached selection');
+                    }
                 }
 
                 // Pricing

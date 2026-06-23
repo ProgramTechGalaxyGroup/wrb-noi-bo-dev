@@ -56,6 +56,9 @@ interface MenuContextType {
         vipCustomerNotes?: string;
         priceVND?: number;
     }) => void;
+    // Xóa toàn bộ pair VIP (item chính + item phụ) cùng 1 booking group
+    // groupId = cartId của item đầu tiên (priceVND > 0) được chọn xóa
+    removeVipGroup: (groupId: string) => void;
 
     // --- Customer Logic ---
     customerInfo: CustomerInfoContext;
@@ -237,6 +240,28 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
         }));
     };
 
+    // [NEW] Xóa toàn bộ VIP group (item chính + item phụ giá 0)
+    // groupId = cartId của bất kỳ item nào trong group — dùng vipDisplayName + vipDuration để nhận diện
+    const removeVipGroup = (groupId: string) => {
+        setCart(prev => {
+            const target = prev.find(i => i.cartId === groupId);
+            if (!target || target.itemType !== 'vip') {
+                // Fallback: xóa đơn lẻ
+                return prev.filter(i => i.cartId !== groupId);
+            }
+            // Xóa tất cả VIP items có cùng (vipDisplayName + vipDuration) — signature của 1 booking
+            const groupName     = target.vipDisplayName || (target.options as any)?.displayName;
+            const groupDuration = target.vipDuration     || (target.options as any)?.vipDuration;
+            return prev.filter(i => {
+                if (i.itemType !== 'vip') return true; // giữ non-VIP items
+                const iName     = i.vipDisplayName || (i.options as any)?.displayName;
+                const iDuration = i.vipDuration     || (i.options as any)?.vipDuration;
+                // Xóa nếu cùng signature
+                return !(iName === groupName && iDuration === groupDuration);
+            });
+        });
+    };
+
     // --- CUSTOMER FUNCTIONS ---
     const updateCustomerInfo = (field: string, value: string) => {
         setCustomerInfoContext(prev => ({ ...prev, [field]: value }));
@@ -256,7 +281,7 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
         <MenuContext.Provider value={{
             services, categories, loading, error, refreshData: fetchData,
             cart, addToCart, updateCartItem, updateCartItemOptions, updateAllCartItemOptions, removeFromCart, clearCart, getQty,
-            addVipToCart, updateVipCartItem,
+            addVipToCart, updateVipCartItem, removeVipGroup,
             customerInfo, updateCustomerInfo, resetCustomerInfo
         }}>
             {children}
