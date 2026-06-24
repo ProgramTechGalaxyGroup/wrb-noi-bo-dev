@@ -9,6 +9,7 @@ import CheckoutHeader from '@/components/Checkout/CheckoutHeader';
 import CustomerInfo from '@/components/Checkout/CustomerInfo';
 import Invoice from '@/components/Checkout/Invoice';
 import PaymentModal from '@/components/Checkout/PaymentModal';
+import VipEditModal, { type VipEditSaveData } from '@/components/Checkout/VipEditModal';
 import CustomForYouModal from '@/components/CustomForYou';
 import AlertModal from '@/components/Shared/AlertModal';
 import { ServiceOptions, CartItem } from '@/components/Menu/types';
@@ -30,7 +31,7 @@ const PAGE_CONFIG = {
 
 export default function BookingCheckoutPage({ params }: { params: Promise<{ lang: string }> }) {
     const router = useRouter();
-    const { cart, updateCartItemOptions, customerInfo, updateCustomerInfo, resetCustomerInfo, clearCart } = useMenuData();
+    const { cart, updateCartItemOptions, updateVipCartItem, customerInfo, updateCustomerInfo, resetCustomerInfo, clearCart } = useMenuData();
     const { user, isAuthUser } = useAuthStore();
 
     // Unwrap params
@@ -59,6 +60,10 @@ export default function BookingCheckoutPage({ params }: { params: Promise<{ lang
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
     const [alertState, setAlertState] = useState<{ isOpen: boolean; message: string; type?: 'error' | 'success' | 'info' }>({ isOpen: false, message: '' });
+
+    // VIP Edit Modal
+    const [isVipEditOpen, setIsVipEditOpen]     = useState(false);
+    const [selectedVipItem, setSelectedVipItem] = useState<CartItem | null>(null);
 
     // --- COMPUTED ---
     const currency = useMemo(() => paymentMethod === 'cash_usd' ? 'USD' : 'VND', [paymentMethod]);
@@ -90,6 +95,23 @@ export default function BookingCheckoutPage({ params }: { params: Promise<{ lang
         if (item.itemType === 'vip') return;
         setSelectedCartItem(item);
         setIsModalOpen(true);
+    };
+
+    const handleVipEditRequest = (item: CartItem) => {
+        setSelectedVipItem(item);
+        setIsVipEditOpen(true);
+    };
+
+    const handleSaveVipEdit = (cartId: string, data: VipEditSaveData) => {
+        updateVipCartItem(cartId, {
+            vipSkillIds:      data.vipSkillIds,
+            vipDuration:      data.vipDuration,
+            vipDisplayName:   data.vipDisplayName,
+            vipCustomerNotes: data.vipCustomerNotes,
+            priceVND:         data.priceVND,
+        });
+        setIsVipEditOpen(false);
+        setSelectedVipItem(null);
     };
 
     const handleSaveCustomRequest = (options: ServiceOptions) => {
@@ -221,6 +243,7 @@ export default function BookingCheckoutPage({ params }: { params: Promise<{ lang
                                 dict={dict}
                                 currency={currency}
                                 onCustomRequest={handleCustomRequest}
+                                onVipEditRequest={handleVipEditRequest}
                             />
 
                             {/* Desktop Submit Button */}
@@ -317,6 +340,15 @@ export default function BookingCheckoutPage({ params }: { params: Promise<{ lang
                 message={alertState.message}
                 type={alertState.type}
                 onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))}
+                lang={activeLang}
+            />
+
+            {/* VIP Edit Modal */}
+            <VipEditModal
+                item={selectedVipItem}
+                isOpen={isVipEditOpen}
+                onClose={() => { setIsVipEditOpen(false); setSelectedVipItem(null); }}
+                onSave={handleSaveVipEdit}
                 lang={activeLang}
             />
         </div>

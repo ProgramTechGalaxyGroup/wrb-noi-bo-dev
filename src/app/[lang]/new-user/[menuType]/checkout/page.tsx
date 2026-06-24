@@ -10,6 +10,7 @@ import CustomerInfo from '@/components/Checkout/CustomerInfo';
 import Invoice from '@/components/Checkout/Invoice';
 import PaymentModal from '@/components/Checkout/PaymentModal';
 import OrderConfirmModal from '@/components/Checkout/OrderConfirmModal';
+import VipEditModal, { type VipEditSaveData } from '@/components/Checkout/VipEditModal';
 import CustomForYouModal from '@/components/CustomForYou';
 import AlertModal from '@/components/Shared/AlertModal';
 import { ServiceOptions, CartItem } from '@/components/Menu/types';
@@ -27,7 +28,7 @@ const PAGE_CONFIG = {
 
 export default function CheckoutPage({ params }: { params: Promise<{ lang: string }> }) {
     const router = useRouter();
-    const { cart, updateAllCartItemOptions, updateCartItemOptions, customerInfo, updateCustomerInfo, resetCustomerInfo } = useMenuData();
+    const { cart, updateCartItemOptions, updateVipCartItem, customerInfo, updateCustomerInfo, resetCustomerInfo } = useMenuData();
     const { user, isAuthUser } = useAuthStore();
 
     // Unwrap params
@@ -59,6 +60,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
     const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
     const [changeDenominations, setChangeDenominations] = useState<number[]>([]);
     const [alertState, setAlertState] = useState<{ isOpen: boolean; message: string; type?: 'error' | 'success' | 'info' }>({ isOpen: false, message: '' });
+
+    // VIP Edit Modal
+    const [isVipEditOpen, setIsVipEditOpen]       = useState(false);
+    const [selectedVipItem, setSelectedVipItem]   = useState<CartItem | null>(null);
 
     // VAT Invoice (5B persist: state lives at page level)
     const [vatInvoice, setVatInvoice] = useState<VatInvoiceData | null>(null);
@@ -104,10 +109,26 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
 
     // ... (Custom Request Handlers remain same) ...
     const handleCustomRequest = (item: CartItem) => {
-        // VIP items don't have Custom For You options (strength, therapist, focus, avoid)
-        if (item.itemType === 'vip') return;
+        if (item.itemType === 'vip') return; // VIP items handled by VipEditModal
         setSelectedCartItem(item);
         setIsModalOpen(true);
+    };
+
+    const handleVipEditRequest = (item: CartItem) => {
+        setSelectedVipItem(item);
+        setIsVipEditOpen(true);
+    };
+
+    const handleSaveVipEdit = (cartId: string, data: VipEditSaveData) => {
+        updateVipCartItem(cartId, {
+            vipSkillIds:      data.vipSkillIds,
+            vipDuration:      data.vipDuration,
+            vipDisplayName:   data.vipDisplayName,
+            vipCustomerNotes: data.vipCustomerNotes,
+            priceVND:         data.priceVND,
+        });
+        setIsVipEditOpen(false);
+        setSelectedVipItem(null);
     };
 
     const handleSaveCustomRequest = (options: ServiceOptions) => {
@@ -230,8 +251,9 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                                 cart={cart}
                                 lang={activeLang}
                                 dict={dict}
-                                currency={currency} // Pass currency
+                                currency={currency}
                                 onCustomRequest={handleCustomRequest}
+                                onVipEditRequest={handleVipEditRequest}
                             />
 
                             {/* Desktop Confirm Button (Hidden on Mobile) */}
@@ -312,6 +334,15 @@ export default function CheckoutPage({ params }: { params: Promise<{ lang: strin
                 message={alertState.message}
                 type={alertState.type}
                 onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))}
+                lang={activeLang}
+            />
+
+            {/* VIP Edit Modal */}
+            <VipEditModal
+                item={selectedVipItem}
+                isOpen={isVipEditOpen}
+                onClose={() => { setIsVipEditOpen(false); setSelectedVipItem(null); }}
+                onSave={handleSaveVipEdit}
                 lang={activeLang}
             />
         </div>

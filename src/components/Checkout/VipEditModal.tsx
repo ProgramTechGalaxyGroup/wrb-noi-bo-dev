@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, User, Clock, FileText, Check, Loader2 } from 'lucide-react';
 import { CartItem } from '@/components/Menu/types';
 import { formatCurrency } from '@/components/Menu/utils';
@@ -94,12 +96,24 @@ const TEXT: Record<string, Record<string, string>> = {
 
 const getT = (lang: string) => TEXT[lang] ?? TEXT.vi;
 
+// Lấy tên ngắn: "Ngô Thị Hồng Nhung" → "Hồng Nhung" (2 chữ cuối)
+const getShortName = (fullName: string): string => {
+    if (!fullName) return fullName;
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length <= 2) return fullName;
+    return parts.slice(-2).join(' ');
+};
+
 // =============================================
 // 🎯 COMPONENT
 // =============================================
 const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps) => {
     const t = getT(lang);
     const vipLang = (lang || 'vi') as VipLang;
+
+    // Portal mount target
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
 
     // --- State ---
     const [staffInfo, setStaffInfo]           = useState<VipStaffInfo | null>(null);
@@ -190,8 +204,18 @@ const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps
 
     // --- Derived: available skills from this KTV ---
     const availableSkills = useMemo((): VipSkill[] => {
-        if (!staffInfo) return [];
-        let skills = getStaffVipSkills(staffInfo.skills);
+        let skills: VipSkill[];
+
+        if (staffInfo) {
+            // [NORMAL] Lấy skills thực tế của KTV từ DB
+            skills = getStaffVipSkills(staffInfo.skills);
+        } else {
+            // [FALLBACK] Không load được staffInfo → hiển thị ALL_VIP_SKILLS
+            // (loại bỏ BLOCKED_SKILL_IDS) để pre-selected skills vẫn thấy được
+            skills = ALL_VIP_SKILLS.filter(s => !BLOCKED_SKILL_IDS.includes(s.id));
+        }
+
+        // Loại bỏ skill combo nếu đã có skill chuyên riêng
         const hasEarChuyen  = skills.some(s => s.id === 'earChuyen');
         const hasNailChuyen = skills.some(s => s.id === 'nailChuyen');
         if (hasEarChuyen)  skills = skills.filter(s => s.id !== 'earCombo');
@@ -255,11 +279,7 @@ const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps
 
     const handleSave = () => {
         if (!item) return;
-        const chinhCount = selectedSkillIds.filter(id => SKILL_MAP[id]?.type === 'CHINH').length;
-        if (chinhCount === 0) {
-            alert(t.no_chinh);
-            return;
-        }
+        // Không bắt buộc chọn skill — giữ nguyên skill gốc nếu user không thay đổi
 
         onSave(item.cartId, {
             vipSkillIds: selectedSkillIds,
@@ -271,14 +291,23 @@ const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps
         onClose();
     };
 
-    // --- Do not render if closed ---
-    if (!isOpen || !item) return null;
+    // --- Do not render if closed or not mounted ---
+    if (!mounted) return null;
 
-    const staffName = staffInfo?.fullName || item.vipStaffName || item.vipStaffId || 'KTV';
+    const staffName = staffInfo?.id || item?.vipStaffId || item?.vipStaffName || 'KTV';
 
-    return (
+    const modalContent = (
         // Backdrop
-        <div className="fixed inset-0 z-[130] flex items-end sm:items-center justify-center">
+        <AnimatePresence>
+        {(isOpen && item) && (
+        <motion.div
+            key="vip-edit-modal"
+            className="fixed inset-0 z-[130] flex items-end sm:items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+        >
             {/* Dim overlay */}
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
@@ -286,10 +315,13 @@ const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps
             />
 
             {/* Sheet */}
-            <div
+            <motion.div
                 className="relative bg-[#131315] border border-[#2a2a2e] w-full max-w-lg max-h-[92dvh] flex flex-col
-                           rounded-t-[32px] sm:rounded-[32px] shadow-2xl shadow-black/50
-                           animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
+                           rounded-t-[32px] sm:rounded-[32px] shadow-2xl shadow-black/50"
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 60, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.9 }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* ── Header ─────────────────────────────────── */}
@@ -495,9 +527,14 @@ const VipEditModal = ({ item, isOpen, onClose, onSave, lang }: VipEditModalProps
                         {t.save}
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
+        )}
+        </AnimatePresence>
     );
+
+    // Render vào document.body để thoát khỏi stacking context của parent sheet
+    return createPortal(modalContent, document.body);
 };
 
 export default VipEditModal;

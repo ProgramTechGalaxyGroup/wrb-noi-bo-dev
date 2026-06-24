@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PencilLine, Wand2, Check, GripHorizontal, User, HeartPulse, Ban, Hand, Clock, Crown } from 'lucide-react';
+import { Wand2, Check, GripHorizontal, User, HeartPulse, Ban, Hand, Clock, Crown } from 'lucide-react';
 import { CartItem } from '@/components/Menu/types';
 import { formatCurrency } from '@/components/Menu/utils';
 import { SKILL_MAP, type VipLang } from '@/lib/vipSkills.constants';
@@ -68,11 +68,15 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
 
                         const isVipItem = item.itemType === 'vip' || !!(item.options as any)?.vipDuration || !!(item.options as any)?.displayName;
 
+                        // Ẩn VIP companion items (giá = 0) — chỉ hiển thị item chính
+                        if (isVipItem && item.priceVND === 0 && item.priceUSD === 0) return null;
+
                         // Fallbacks for restored items from history
-                        const vipDisplayName = item.vipDisplayName || (item.options as any)?.displayName || 'VIP Bespoke';
-                        const vipDuration = item.vipDuration || (item.options as any)?.vipDuration || item.timeValue || 60;
-                        const vipStaffId = item.vipStaffId || (item.options as any)?.vipStaffId || 'N/A';
-                        const vipSkillIds = item.vipSkillIds || (item.options as any)?.selectedSkills || [];
+                        const vipDisplayName  = item.vipDisplayName || (item.options as any)?.displayName || 'VIP Bespoke';
+                        const vipDuration     = item.vipDuration    || (item.options as any)?.vipDuration    || item.timeValue || 60;
+                        // Hiển thị MÃ nhân viên (NH014) — đây là primary key dạng text của bảng Staff
+                        const vipStaffDisplay = item.vipStaffId     || (item.options as any)?.vipStaffId       || 'KTV';
+                        const vipSkillIds     = item.vipSkillIds    || (item.options as any)?.selectedSkills   || [];
 
                         return (
                             <div key={item.cartId} className="border border-white/10 rounded-2xl p-4 shadow-sm bg-[#0d0d0d] mb-4">
@@ -105,19 +109,13 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                                     {isVipItem ? (
                                         /* ─── VIP ITEM RENDER ─── */
                                         <>
-                                            {/* VIP Edit Hint */}
-                                            <div className="flex justify-end mb-1">
-                                                <span className="text-[10px] text-[#e6c487]/50 font-medium flex items-center gap-1 tracking-wide">
-                                                    <PencilLine size={10} /> Chạm để chỉnh
-                                                </span>
-                                            </div>
                                             {/* KTV Info */}
                                             <div className="flex justify-between items-center">
                                                 <div className="flex gap-2 items-center">
                                                     <div className="w-5 flex justify-center"><User size={16} className="text-[#e6c487]" /></div>
                                                     <span className="font-medium text-gray-400">KTV</span>
                                                 </div>
-                                                <span className="font-bold text-[#e6c487]">{vipStaffId}</span>
+                                                <span className="font-bold text-[#e6c487] text-right max-w-[60%] truncate">{vipStaffDisplay}</span>
                                             </div>
                                             {/* Duration */}
                                             <div className="flex justify-between items-center">

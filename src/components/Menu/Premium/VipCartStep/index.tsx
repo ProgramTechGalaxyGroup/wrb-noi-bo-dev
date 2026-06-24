@@ -88,6 +88,14 @@ const TEXT: Record<string, Record<string, string>> = {
 };
 const getT = (lang: string) => TEXT[lang] ?? TEXT.vi;
 
+// Lấy tên ngắn: "Ngô Thị Hồng Nhung" → "Hồng Nhung" (2 chữ cuối)
+const getShortName = (fullName: string): string => {
+    if (!fullName) return fullName;
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length <= 2) return fullName;
+    return parts.slice(-2).join(' ');
+};
+
 // =============================================
 // 🔧 HELPER: Group VIP cart items by booking
 // =============================================
@@ -107,9 +115,10 @@ const groupVipItems = (cart: CartItem[]): VipBookingGroup[] => {
     for (const [, items] of groupMap) {
         const primary    = items.find(i => i.priceVND > 0) ?? items[0];
         const companions = items.filter(i => i.cartId !== primary.cartId);
+        // Dùng mã nhân viên (NH014) — id là primary key dạng text của bảng Staff
         const allStaffNames = [
-            primary.vipStaffName || primary.vipStaffId || 'KTV',
-            ...companions.map(c => c.vipStaffName || c.vipStaffId || 'KTV'),
+            primary.vipStaffId || primary.vipStaffName || 'KTV',
+            ...companions.map(c => c.vipStaffId || c.vipStaffName || 'KTV'),
         ].filter(Boolean);
         groups.push({ groupId: primary.cartId, primaryItem: primary, companions, totalPrice: primary.priceVND, allStaffNames });
     }
