@@ -158,6 +158,63 @@ export async function POST(request: Request) {
             await handleVipItems(supabaseAdmin, customId, vipItems, standardItems.length);
         }
 
+        // 5. Build and Send Notification
+        try {
+            let notifMessage = `📋 ĐƠN HÀNG MỚI (Giỏ Hàng)\n`;
+            notifMessage += `👤 ${customerData.fullName} — ${customerData.phone}\n`;
+            notifMessage += `💰 Tổng thanh toán: ${totalVND.toLocaleString('vi-VN')}đ (${paymentMethod})\n\n`;
+
+            if (hasVip) {
+                notifMessage += `📦 DỊCH VỤ VIP:\n`;
+                vipItems.forEach((item: any) => {
+                    const ktv = item.vipStaffId ? ` | KTV: ${item.vipStaffId}` : '';
+                    notifMessage += `- ${item.vipDisplayName || 'Gói VIP'} (${item.vipDuration || 60}p)${ktv}\n`;
+                    if (item.vipCustomerNotes && item.vipCustomerNotes.trim()) {
+                        notifMessage += `  📝 Ghi chú: ${item.vipCustomerNotes.trim()}\n`;
+                    }
+                });
+                notifMessage += `\n`;
+            }
+
+            if (hasStandard) {
+                notifMessage += `📦 DỊCH VỤ THƯỜNG:\n`;
+                standardItems.forEach((item: any) => {
+                    const itemName = item.names?.vi || item.name || item.id || 'Dịch vụ';
+                    notifMessage += `- ${itemName} x${item.qty}\n`;
+                });
+                notifMessage += `\n`;
+            }
+
+            await supabaseAdmin.from('StaffNotifications').insert({
+                bookingId: customId,
+                employeeId: null, // null = broadcast to all admin/reception
+                type: 'NEW_ORDER',
+                message: notifMessage.trim(),
+                isRead: false,
+                createdAt: vnTimeStr,
+            });
+            
+            // Cập nhật lại notes cho Bookings để hiển thị trên Admin Dashboard nếu có VIP notes
+            const allVipNotes = vipItems
+                .map((item: any) => item.vipCustomerNotes?.trim())
+                .filter(Boolean);
+            
+            if (allVipNotes.length > 0) {
+                const notesObj = {
+                    type: 'CHECKOUT_CART',
+                    source,
+                    vipCustomerNotes: allVipNotes.join(' | ')
+                };
+                await supabaseAdmin
+                    .from('Bookings')
+                    .update({ notes: JSON.stringify(notesObj) })
+                    .eq('id', customId);
+            }
+
+        } catch (notifErr) {
+            console.error('[API Order] Notification error:', notifErr);
+        }
+
         return NextResponse.json({ success: true, billNum, bookingId: customId, accessToken });
     } catch (error: any) {
         console.error("❌ API Order Error:", error);
