@@ -146,6 +146,14 @@ export default function Invoice({ cart, lang, dict, currency = 'VND', onCustomRe
                                                     })}
                                                 </div>
                                             )}
+                                            
+                                            {/* Note Content */}
+                                            {item.vipCustomerNotes && (
+                                                <div className="flex justify-between gap-4 text-xs italic text-gray-400 mt-2 pt-2 border-t border-white/5">
+                                                    <span className="shrink-0">{dict.history?.note_label || 'Ghi chú'}</span>
+                                                    <span className="text-right text-[#C9A96E] font-medium not-italic">{item.vipCustomerNotes}</span>
+                                                </div>
+                                            )}
                                         </>
                                     ) : (
                                         /* ─── STANDARD ITEM RENDER (unchanged) ─── */
