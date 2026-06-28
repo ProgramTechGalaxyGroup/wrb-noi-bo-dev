@@ -70,15 +70,16 @@ export const useServiceTimer = (
     }, [getInitialElapsed]);
 
     useEffect(() => {
-        // Only tick if the service has actually started and not paused
-        if (!isStarted || isPaused) return;
+        // Only tick if the service has actually started
+        if (!isStarted) return;
 
-        // Cập nhật mỗi giây bằng tính toán tuyệt đối (absolute time) để tránh drift khi ẩn tab
+        // Đếm giây mượt mà bằng prev + 1
         const interval = setInterval(() => {
-            setElapsedSeconds(getInitialElapsed());
+            setElapsedSeconds(prev => Math.min(prev + 1, totalSeconds));
         }, 1000);
 
-        // Cập nhật ngay lập tức khi user quay lại tab (truy cập mới chạy)
+        // Cập nhật ngay lập tức thời gian thực tế khi user quay lại tab (truy cập mới chạy)
+        // Chống drift khi tab bị trình duyệt đưa vào chế độ ngủ
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 setElapsedSeconds(getInitialElapsed());
@@ -90,7 +91,7 @@ export const useServiceTimer = (
             clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [isStarted, isPaused, getInitialElapsed]);
+    }, [isStarted, isPaused, getInitialElapsed, totalSeconds]);
 
     const remainingSeconds = totalSeconds - elapsedSeconds;
     const progress = isStarted ? (remainingSeconds / totalSeconds) * 100 : 100;
