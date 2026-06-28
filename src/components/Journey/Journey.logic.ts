@@ -41,7 +41,9 @@ export const useServiceTimer = (
 
         let normalizedStart = computedTimeStart;
         if (typeof computedTimeStart === 'string' && !computedTimeStart.includes('Z') && !computedTimeStart.includes('+')) {
-            normalizedStart = computedTimeStart.replace(' ', 'T') + 'Z';
+            // Chỉ thay thế khoảng trắng bằng chữ T để Safari parse được
+            // KHÔNG thêm Z vì dữ liệu trong DB là giờ Việt Nam (Local Time), thêm Z sẽ biến thành giờ UTC (tương lai 7 tiếng)
+            normalizedStart = computedTimeStart.replace(' ', 'T');
         }
 
         const start = new Date(normalizedStart).getTime();
@@ -49,7 +51,7 @@ export const useServiceTimer = (
         if (timeEnd) {
             let normalizedEnd = timeEnd;
             if (typeof timeEnd === 'string' && !timeEnd.includes('Z') && !timeEnd.includes('+')) {
-                normalizedEnd = timeEnd.replace(' ', 'T') + 'Z';
+                normalizedEnd = timeEnd.replace(' ', 'T');
             }
             const end = new Date(normalizedEnd).getTime();
             const diffInSeconds = Math.floor((end - start) / 1000);
