@@ -335,19 +335,27 @@ export function useJourneyRealtime(bookingId: string) {
                 }
             });
 
-        // 🔧 EGRESS FIX: Tiered polling fallback — 15s visible, 30s hidden
-        // Reduced from 5s → 15s when active (saves ~66% egress) while keeping reliability
-        // Realtime handles instant updates; polling is FALLBACK for unreliable networks
+        // 🔧 EGRESS OPTIMIZATION:
+        // Polling is FALLBACK for unreliable networks. Mở lại tốc độ 5s khi đang xem.
         const pollInterval = setInterval(() => {
             if (document.visibilityState === 'hidden') {
-                return; // Skip when hidden — no user watching
+                return; // Skip when hidden — no user watching (không chạy ngầm)
             }
             fetchState();
-        }, 15000);
+        }, 5000);
+
+        // 🚀 Cập nhật lập tức khi khách hàng bật lại tab (truy cập mới chạy)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                fetchState();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             supabase.removeChannel(channel);
             clearInterval(pollInterval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [bookingId, resolvedId, fetchState]);
 

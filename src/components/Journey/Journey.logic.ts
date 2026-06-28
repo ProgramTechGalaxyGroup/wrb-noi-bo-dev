@@ -36,7 +36,7 @@ export const useServiceTimer = (
     const totalSeconds = duration * 60;
     const isStarted = !!computedTimeStart;
 
-    const getInitialElapsed = () => {
+    const getInitialElapsed = useCallback(() => {
         if (!computedTimeStart) return 0;
 
         let normalizedStart = computedTimeStart;
@@ -59,24 +59,36 @@ export const useServiceTimer = (
         const now = new Date().getTime();
         const diffInSeconds = Math.floor((now - start) / 1000);
         return Math.max(0, Math.min(diffInSeconds, totalSeconds));
-    };
+    }, [computedTimeStart, timeEnd, totalSeconds]);
 
     const [elapsedSeconds, setElapsedSeconds] = useState(getInitialElapsed());
 
     useEffect(() => {
         setElapsedSeconds(getInitialElapsed());
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [computedTimeStart, timeEnd, totalSeconds]);
+    }, [getInitialElapsed]);
 
     useEffect(() => {
         // Only tick if the service has actually started and not paused
         if (!isStarted || isPaused) return;
 
+        // Cập nhật mỗi giây bằng tính toán tuyệt đối (absolute time) để tránh drift khi ẩn tab
         const interval = setInterval(() => {
-            setElapsedSeconds(prev => Math.min(prev + 1, totalSeconds));
+            setElapsedSeconds(getInitialElapsed());
         }, 1000);
-        return () => clearInterval(interval);
-    }, [totalSeconds, isStarted, isPaused]);
+
+        // Cập nhật ngay lập tức khi user quay lại tab (truy cập mới chạy)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                setElapsedSeconds(getInitialElapsed());
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [isStarted, isPaused, getInitialElapsed]);
 
     const remainingSeconds = totalSeconds - elapsedSeconds;
     const progress = isStarted ? (remainingSeconds / totalSeconds) * 100 : 100;
