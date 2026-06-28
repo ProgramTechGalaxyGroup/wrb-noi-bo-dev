@@ -45,7 +45,7 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
     // Log debug (đã ẩn để giảm tải console)
     // console.log('[Journey] rawStatus:', rawStatus, '| items:', itemStatuses.join(', '));
     const itemsStarted = (journeyData?.items || []).some(i =>
-        i.timeStart || (i.status && ['IN_PROGRESS', 'COMPLETED', 'CLEANING', 'DONE', 'FEEDBACK'].includes(i.status))
+        i.computedTimeStart || (i.status && ['IN_PROGRESS', 'COMPLETED', 'CLEANING', 'DONE', 'FEEDBACK'].includes(i.status))
     );
     const derivedStatusRaw = (rawStatus === 'NEW' || rawStatus === 'PREPARING') && itemsStarted
         ? 'IN_PROGRESS'
@@ -60,8 +60,11 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
 
     const state = forceAllRated ? 'DONE' : (derivedStatusRaw === 'DONE' && !allRated) ? 'FEEDBACK' : derivedStatusRaw;
 
-    // Khi rawStatus = PREPARING nhưng items đã Started -> Nghĩa là KTV đang nghỉ giữa chặng (chuyển phòng)
-    const isPaused = rawStatus === 'PREPARING' && itemsStarted;
+    // Khi rawStatus = PREPARING nhưng items đã Started VÀ có item đã hoàn thành -> KTV đang nghỉ giữa chặng (chuyển phòng)
+    const hasCompletedItems = (journeyData?.items || []).some(i => 
+        ['COMPLETED', 'CLEANING', 'DONE', 'FEEDBACK'].includes(i.status || '')
+    );
+    const isPaused = rawStatus === 'PREPARING' && itemsStarted && hasCompletedItems;
 
     const t = {
         preparing: translations[lang]?.preparing || translations['en'].preparing,
