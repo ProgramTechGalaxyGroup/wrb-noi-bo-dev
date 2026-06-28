@@ -44,9 +44,10 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
     const rawStatus = journeyData?.status || 'PREPARING';
     // Log debug (đã ẩn để giảm tải console)
     // console.log('[Journey] rawStatus:', rawStatus, '| items:', itemStatuses.join(', '));
-    const itemsStarted = (journeyData?.items || []).some(i =>
-        i.computedTimeStart || (i.status && ['IN_PROGRESS', 'COMPLETED', 'CLEANING', 'DONE', 'FEEDBACK'].includes(i.status))
-    );
+    const itemsStarted = (journeyData?.items || []).some(i => {
+        const hasStartedSegment = Array.isArray(i.segments) && i.segments.some((s: any) => s.actualStartTime);
+        return hasStartedSegment || i.computedTimeStart || (i.status && ['IN_PROGRESS', 'COMPLETED', 'CLEANING', 'DONE', 'FEEDBACK'].includes(i.status));
+    });
     const derivedStatusRaw = (rawStatus === 'NEW' || rawStatus === 'PREPARING') && itemsStarted
         ? 'IN_PROGRESS'
         : rawStatus === 'NEW' ? 'PREPARING'
