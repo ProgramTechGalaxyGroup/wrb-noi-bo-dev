@@ -42,12 +42,10 @@ export default function JourneyPage({ params }: { params: Promise<{ lang: string
 
     // State machine: derive từ booking.status + items status
     const rawStatus = journeyData?.status || 'PREPARING';
-    // Log debug
-    const itemStatuses = (journeyData?.items || []).map(i => `${i.id}:${i.status}`);
-    console.log('[Journey] rawStatus:', rawStatus, '| items:', itemStatuses.join(', '));
-    // Bất kỳ item nào có status KHÁC "WAITING"/null → coi booking đã bắt đầu
+    // Log debug (đã ẩn để giảm tải console)
+    // console.log('[Journey] rawStatus:', rawStatus, '| items:', itemStatuses.join(', '));
     const itemsStarted = (journeyData?.items || []).some(i =>
-        i.status && i.status !== 'WAITING'
+        i.timeStart || (i.status && ['IN_PROGRESS', 'COMPLETED', 'CLEANING', 'DONE', 'FEEDBACK'].includes(i.status))
     );
     const derivedStatusRaw = (rawStatus === 'NEW' || rawStatus === 'PREPARING') && itemsStarted
         ? 'IN_PROGRESS'
